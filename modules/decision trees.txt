@@ -1,0 +1,10 @@
+
+https://stackabuse.com/decision-trees-in-python-with-scikit-learn/
+
+Advantages of Decision Trees
+There are several advantages of using decision treess for predictive analysis:
+
+Decision trees can be used to predict both continuous and discrete values i.e. they work well for both regression and classification tasks.
+They require relatively less effort for training the algorithm.
+They can be used to classify non-linearly separable data.
+They're very fast and efficient compared to KNN and other classification algorithms.

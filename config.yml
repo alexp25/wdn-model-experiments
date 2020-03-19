@@ -1,0 +1,26 @@
+filenames: ["exp_31", "exp_37", "exp_38", "exp_39"]
+
+# filenames: ["exp_31"]
+
+root_data_folder: "data"
+root_crt_model_folder: "data/models/crt"
+
+# root_model_container: "data/models/unpacked/no_encoding"
+root_model_container: "data/models/unpacked/one_hot_encoding"
+load_from_container: True
+
+# read the data from the csv file
+# input_file = "./PastHires.csv"
+input_file: "./test_data.csv"
+
+bookmarks: [188, 282, 375, 469, 563, 657]
+
+train_percent: 80
+
+n_valves: 6
+
+one_hot_encoding: True
+# one_hot_encoding: False
+
+
+run_clean: True

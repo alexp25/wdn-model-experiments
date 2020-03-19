@@ -1,0 +1,213 @@
+from modules import graph
+
+from modules.graph import Timeseries, Barseries
+
+from os import listdir
+from os.path import isfile, join
+import json
+from typing import List
+import numpy as np
+
+import yaml
+import csv
+
+# import copy
+
+with open("config.yml", "r") as f:
+    config = yaml.load(f)
+
+
+mypath = "./data/output/"
+
+
+mode = "test"
+# mode = "train"
+
+models = ["deep_1", "deep_2_rnn", "dtree_1", "dtree_2_multioutput"]
+labels = ["dense", "RNN", "dtree", "randomforest"]
+
+
+def list_files():
+
+    onlyfiles = [f for f in listdir(mypath) if isfile(
+        join(mypath, f)) and '.csv' in f and "eval_" in f and "_" + mode in f]
+
+    return onlyfiles
+
+
+files = list_files()
+
+print(files)
+
+
+def read_results(sorted_files):
+    acc = {}
+    for exp in sorted_files:
+        with open(join(mypath, exp), "r") as f:
+            data = f.read().split("\n")
+            data2 = []
+            for d in data:
+                d = d.split(",")
+                print(d)
+                if len(d) > 1:
+                    d = {
+                        "label": d[0],
+                        "avg": float(d[1]),
+                        "top": float(d[2]),
+                        "dt": float(d[3]),
+                        "fsize": float(d[4])/1024
+                    }
+                    data2.append(d)
+            acc[exp] = data2
+    return acc
+
+
+acc = read_results(files)
+
+print(acc)
+
+# quit()
+
+
+def create_barseries(accs, keys, k):
+    tss: List[Barseries] = []
+    colors = ['blue', 'red', 'orange', 'green']
+    ck = 0
+
+    print("key: " + k)
+
+    for (i, acc) in enumerate(accs):
+
+        if i >= len(keys):
+            break
+
+        print(acc)
+
+        ts: Barseries = Barseries()
+        ts.label = keys[i]
+        ts.color = colors[ck]
+
+        ck += 1
+        if ck >= len(colors):
+            ck = 0
+
+        ts.data = []
+
+        acc_data = accs[acc]
+
+        for (j, key) in enumerate(acc_data):
+            # print(key)
+            ts.data.append(key[k])
+
+        print(ts.data)
+        average_acc = np.mean(np.array(ts.data))
+
+        print("average accuracy: ", average_acc)
+        ts.average = acc + ": " + str(average_acc)
+
+        tss.append(ts)
+
+        ts = None
+    return tss
+
+# particular case
+
+
+def create_barseries_avg_accuracy_for_model_interlaced(accs, avg_best_selector, models):
+    tss: List[Barseries] = []
+    colors = ['blue', 'red', 'green', 'orange']
+    ck = 0
+
+    for (i, avg_best) in enumerate(avg_best_selector):
+        print("key: " + avg_best)
+        ts: Barseries = Barseries()
+        ts.label = avg_best
+        ts.color = colors[ck]
+        ts.data = []
+
+        ck += 1
+        if ck >= len(colors):
+            ck = 0
+
+        # accs <=> models
+        for (j, model) in enumerate(accs):
+            acc_data = accs[model]
+            batch = []
+            for (j2, data1) in enumerate(acc_data):
+                batch.append(acc_data[j2][avg_best])
+
+            ts.data.append(np.mean(np.array(batch)))
+
+        tss.append(ts)
+        ts = None
+    return tss
+
+
+print(acc)
+
+# quit(0)
+
+report = ""
+
+keys_comp = ["avg", "top"]
+
+print("create barseries")
+tss = create_barseries_avg_accuracy_for_model_interlaced(
+    acc, keys_comp, labels)
+print("plotting chart")
+
+fig = graph.plot_barchart_multi(
+    tss, "model", "accuracy [%]", "Average model accuracy (" + mode + ")", labels, True)
+
+graph.save_figure(fig, "./figs/eval_accuracy_comp_mean_combined_" + mode)
+
+# keys_comp = ["dt"]
+# print("create barseries")
+# tss1 = create_barseries_avg_accuracy_for_model_interlaced(
+#     acc, keys_comp, labels)
+# keys_comp = ["fsize"]
+# tss2 = create_barseries_avg_accuracy_for_model_interlaced(
+#     acc, keys_comp, labels)
+# print("plotting chart")
+
+# fig = graph.plot_barchart_multi_dual(
+#     tss1, tss2, "model", "training time (s)", "size on disk (kB)", "Model computation", labels, True, True)
+
+# graph.save_figure(fig, "./figs/eval_accuracy_comp_mean_combined_aux_" + mode)
+
+# quit()
+
+print("create barseries")
+tss = create_barseries(acc, labels, keys_comp[0])
+print("plotting chart")
+fig = graph.plot_barchart_multi(tss, "model", "accuracy [%]", "Average model accuracy (" + mode + ")", [
+                                "1-N-80%", "1-N-1-80%", "1-N-1-50%", "GRAY-80%"], False)
+graph.save_figure(fig, "./figs/eval_accuracy_comp_mean_" + mode)
+
+print("\n\n")
+print("average accuracy results: ")
+r = [ts.average for ts in tss]
+report += "average accuracy results:\n"
+report += "\n".join(r) + "\n\n"
+print(r)
+print("\n\n")
+
+# print(keys_comp)
+
+keys_comp = ["avg", "top"]
+
+tss = create_barseries(acc, labels, keys_comp[1])
+fig = graph.plot_barchart_multi(tss, "model", "accuracy [%]", "Best model accuracy (" + mode + ")", [
+                                "1-N-80%", "1-N-1-80%", "1-N-1-50%", "GRAY-80%"], False)
+graph.save_figure(fig, "./figs/eval_accuracy_comp_best_" + mode)
+
+print("\n\n")
+print("top accuracy results: ")
+r = [ts.average for ts in tss]
+report += "top accuracy results:\n"
+report += "\n".join(r) + "\n\n"
+print(r)
+print("\n\n")
+
+with open(mypath + "accuracy_report.txt", "w") as f:
+    f.write(report)

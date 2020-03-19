@@ -1,0 +1,1 @@
+random experiment with online validation file attached, using RNN trained on GRAY test case
