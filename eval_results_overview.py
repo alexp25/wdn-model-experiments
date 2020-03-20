@@ -50,14 +50,19 @@ def read_results(sorted_files):
                 d = d.split(",")
                 print(d)
                 if len(d) > 1:
-                    d = {
+                    d_obj = {
                         "label": d[0],
                         "avg": float(d[1]),
                         "top": float(d[2]),
-                        "dt": float(d[3]),
-                        "fsize": float(d[4])/1024
+                        "dt": 0,
+                        "fsize": 0
                     }
-                    data2.append(d)
+
+                    if len(d) > 4:
+                        d_obj["dt"] = float(d[3])
+                        d_obj["fsize"] = float(d[4])/1024
+
+                    data2.append(d_obj)
             acc[exp] = data2
     return acc
 
@@ -160,6 +165,8 @@ fig = graph.plot_barchart_multi(
     tss, "model", "accuracy [%]", "Average model accuracy (" + mode + ")", labels, True)
 
 graph.save_figure(fig, "./figs/eval_accuracy_comp_mean_combined_" + mode)
+
+# quit()
 
 # keys_comp = ["dt"]
 # print("create barseries")

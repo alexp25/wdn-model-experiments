@@ -173,7 +173,9 @@ def set_disp(title, xlabel, ylabel):
 # plt.savefig('images/two-scales-5.png')
 
 def plot_barchart_multi(bss: List[Barseries], xlabel, ylabel, title, xlabels, top):
-    return plot_barchart_multi_core(bss, xlabel, ylabel, title, xlabels, top, None, None, True, 0, 0, None)[0]
+    return plot_barchart_multi_core(bss, xlabel, ylabel, title, xlabels, top, None, None, True, None, 0, None)[0]
+    # 0.155
+    # return plot_barchart_multi_core(bss, xlabel, ylabel, title, xlabels, top, None, None, True, -0.125, 0, None)[0]
 
 
 def plot_barchart_multi_dual(bss1: List[Barseries], bss2: List[Barseries], xlabel, ylabel1, ylabel2, title, xlabels, top, show):
@@ -205,6 +207,11 @@ def plot_barchart_multi_core(bss: List[Barseries], xlabel, ylabel, title, xlabel
         bar_width = 1 / (bcount + 1)
     else:
         bar_width = 1/(n_groups+1)
+
+    if offset is None:
+        # offset = -1 / (n_groups * 2 * bar_width + 1)
+        # offset = -bar_width/2
+        offset = bar_width/2
 
     # if n_groups == 1:
     #     bar_width = 1
