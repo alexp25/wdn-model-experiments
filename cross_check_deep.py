@@ -41,7 +41,7 @@ input_file = config["input_file"]
 filenames = config["filenames"]
 
 
-use_rnn = False
+use_rnn = True
 use_top = True
 
 if config["load_from_container"]:

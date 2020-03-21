@@ -5,12 +5,12 @@ filenames: ["exp_31", "exp_37", "exp_38", "exp_39"]
 root_data_folder: "data"
 root_crt_model_folder: "data/models/crt"
 
-root_model_container: "data/models/unpacked/no_encoding"
-# root_model_container: "data/models/unpacked/one_hot_encoding"
+# root_model_container: "data/models/unpacked/no_encoding"
+root_model_container: "data/models/unpacked/one_hot_encoding"
 load_from_container: True
 
-# one_hot_encoding: True
-one_hot_encoding: False
+one_hot_encoding: True
+# one_hot_encoding: False
 
 # read the data from the csv file
 # input_file = "./PastHires.csv"

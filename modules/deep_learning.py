@@ -91,8 +91,24 @@ def create_model_RNN(X, y):
     # model.add(Dense(output_dim, activation='sigmoid'))
     # model.compile(loss='mean_squared_error', optimizer='adam')
 
-    model.compile(loss='binary_crossentropy',
-                  optimizer='adam', metrics=['accuracy'])
+    # model.compile(loss='binary_crossentropy',
+    #               optimizer='adam', metrics=['accuracy'])
+
+
+    # There are three kinds of classification tasks:
+
+    # Binary classification: two exclusive classes
+    # Multi-class classification: more than two exclusive classes
+    # Multi-label classification: just non-exclusive classes
+    # Here, we can say
+
+    # In the case of (1), you need to use binary cross entropy.
+    # In the case of (2), you need to use categorical cross entropy.
+    # In the case of (3), you need to use binary cross entropy.
+
+    model.compile(loss='categorical_crossentropy',
+                optimizer='adam',
+                metrics=['accuracy'])
 
     model.summary()
 
@@ -285,6 +301,11 @@ def eval_model(model, X, y, ndata, use_rnn):
 
     return accuracy
 
+def predict_model_RNN(model, X):
+    XR = reshape_RNN1(X)[0]
+    # make probability predictions with the model
+    predictions = model.predict(XR)
+    return predictions
 
 def eval_model_RNN(model, X, y, ndata):
     res = reshape_RNN(X, y)
@@ -304,13 +325,25 @@ def binarize_predictions(x, low, high):
     rows = s[0]
     cols = s[1]
 
+    low1 = 0
+    high1 = 1
+
     for i in range(0, rows):
         for j in range(0, cols):
+            done = False
             if x[i, j] > high:
                 x[i, j] = 1
+                done = True
             if x[i, j] < low:
                 x[i, j] = 0
-
+                done = True
+            if not done:
+                dist_low = abs(x[i, j] - low1)
+                dist_high = abs(x[i, j] - high1)
+                if dist_low < dist_high:
+                    x[i, j] = 0
+                else:
+                    x[i, j] = 1
     return x
 
 

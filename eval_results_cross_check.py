@@ -22,8 +22,8 @@ colsdict = {}
 
 mode = "deep_1"
 mode = "deep_2_rnn"
-mode = "dtree_1"
-mode = "dtree_2_multioutput"
+# mode = "dtree_1"
+# mode = "dtree_2_multioutput"
 
 mode2 = "train"
 mode2 = "test"

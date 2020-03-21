@@ -41,7 +41,7 @@ if n_reps > 1:
 else:
     save_best_model = False
 
-use_rnn = False
+use_rnn = True
 
 prep = Preprocessing()
 

@@ -1,13 +1,14 @@
 
 import numpy as np
 from sklearn.preprocessing import OneHotEncoder, OrdinalEncoder
+import math
 
 
 class Preprocessing:
     def __init__(self):
         self.encoder = None
 
-    ## adapt input, from list of list of binary values to list of string encoded binary values
+    # adapt input, from list of list of binary values to list of string encoded binary values
     def adapt_input(self, data):
         data_str = []
         for row in data:
@@ -16,11 +17,11 @@ class Preprocessing:
         # print(data_str)
         return data_str
 
-    ## adapt input from list of binary values to a string encoded binary value
+    # adapt input from list of binary values to a string encoded binary value
     def adapt_input_core(self, data):
         return "".join([str(int(e)) for e in data])
-      
-    ## create one hot encoder
+
+    # create one hot encoder
     def create_encoder(self, data):
         self.encoder = OneHotEncoder(handle_unknown='ignore', sparse=False)
         # enc = OrdinalEncoder()
@@ -33,19 +34,46 @@ class Preprocessing:
         # print(td)
         return td
 
-    ## encode via one hot encoder
+    # encode via one hot encoder
     def encode(self, data):
         encoded = self.encoder.transform(data)
         # print(encoded)
+        s = np.shape(data)
+        rows = s[0]
+        cols = s[1]
+        print("encode > encoded shape: ", rows, cols)
+        print(encoded[0:10])
         return encoded
 
-    ## decode via one hot encoder
+    # decode via one hot encoder
+    # adapt unknown encodings
     def decode(self, data):
+        s = np.shape(data)
+        rows = s[0]
+        cols = s[1]
+        cols_data = cols
+        cols_decoded = int(math.log(cols_data, 2))
+        print("decode > encoded shape: ", rows, cols)
         decoded = self.encoder.inverse_transform(data)
+        s = np.shape(decoded)
+        rows = s[0]
+        cols = s[1]
+        print("decode > decoded shape: ", rows, cols)
+        i = 0
+        for r in range(rows):
+            if decoded[r][0] is None:
+                decoded[r][0] = "".join([str(e) for e in [0]*cols_decoded])
+                # print(decoded[r])
+            else:
+                if i == 0:
+                    print(decoded[r])
+                    i += 1
+                # np.zeros((cols,), dtype=int)
+                # print("decoded unknown: ", decoded[r])
         # print(decoded)
         return decoded
 
-    ## decode from string encoded binary value into an int
+    # decode from string encoded binary value into an int
     def binary_to_int(self, val_s):
         int_b = 0
         val_s = val_s[::-1]
@@ -57,7 +85,7 @@ class Preprocessing:
             p += 1
         return int_b
 
-    ## decode from list of lists of binary values into a list of ints
+    # decode from list of lists of binary values into a list of ints
     def decode_int(self, data):
         ints = []
         for b in data:
@@ -67,41 +95,35 @@ class Preprocessing:
             ints.append(int_b)
         return ints
 
-    ## decode from list of lists of one hot encoded binary values into a list of ints
+    # decode from list of lists of one hot encoded binary values into a list of ints
     def decode_int_onehot(self, data):
         ints = []
+        print("decoding: ", data)
+        s = np.shape(data)
+        print("shape: ", s[0], s[1])
         for b in data:
             # self.adapt_input_core(b)
-            # print("data: ", b)
+            # b = b[0]
+            print("data: ", b)
+            s = len(b)
+            print("shape: ", s)
             decoded_binary = self.decode([b])[0]
-            # print(decoded_binary)
+            print("decoded binary: ", decoded_binary)
             int_b = self.binary_to_int(decoded_binary[0])
+            print("decoded int: ", int_b)
             ints.append(int_b)
         return ints
 
-if __name__ == "__main__":
-    preprocessing = Preprocessing()
-    # data = [[0,0,0],[0,0,1],[0,1,0],[0,1,1],[1,0,0],[1,0,1],[1,1,0],[1,1,1]]
-    # data = [["A"], ["B"], ["C"]]
-    data = [["000"], ["001"], ["010"], ["011"],
-            ["100"], ["101"], ["110"], ["111"]]
-    encoded = preprocessing.create_encoder(data)
+    def str_to_list(self, data):
+        res = []
+        invalid_count = 0
+        for d in data:
+            # print(d)
+            if d[0] is not None:
+                res.append([int(e) for e in d[0]])
+            else:
+                res.append(d)
+                invalid_count += 1
+        print("invalid count: " + str(invalid_count))
+        return res
 
-    print("encoded: ")
-    print(encoded)
-
-    encoded1 = preprocessing.encode([["011"]])
-
-    print("binary to int")
-    print(preprocessing.binary_to_int("110"))
-
-    # print("data to int")
-    print(preprocessing.decode_int(data))
-
-    print(encoded1)
-    print("one hot encoded to list")
-    print(preprocessing.decode_int_onehot(encoded1))
-
-    decoded = preprocessing.decode(encoded)
-
-    

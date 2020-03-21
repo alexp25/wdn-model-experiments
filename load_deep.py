@@ -29,10 +29,13 @@ filenames = config["filenames"]
 bookmarks = config["bookmarks"]
 model_filenames = filenames
 
+custom_output = False
+
+# custom_output = True
 # root_data_folder += "/random1"
-# root_crt_model_folder = "./data/models/deep_rnn_random"
+# # root_crt_model_folder = "./data/models/deep_rnn_random"
 # filenames = ["exp_179"]
-# model_filenames = ["exp_179"]
+# model_filenames = ["exp_39"]
 
 # set this as in saved models folder
 n_reps = 5
@@ -40,11 +43,14 @@ n_reps = 5
 results_vect_train = []
 results_vect_test = []
 
-use_rnn = False
+use_rnn = True
 
 output_filename = "eval_deep_1_"
 if use_rnn:
     output_filename = "eval_deep_2_rnn_"
+
+if custom_output:
+    output_filename += "custom_"
 
 # output_filename = "eval_deep_3_rnn_random_"
 # output_filename = "eval_deep_5_rnn_random_"

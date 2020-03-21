@@ -40,6 +40,24 @@ def load_model_result_file(filename):
     return accuracy, dt, fsize
 
 
+def load_dataset_raw_buffer(filename):
+    dataset = np.genfromtxt(filename, delimiter=',')
+    # split into input (X) and output (y) variables
+    x = dataset[1:, 2:13]
+    y = dataset[1:, 14:20]
+
+    sizex = np.shape(x)
+    sizey = np.shape(y)
+
+    print(sizex)
+    print(sizey)
+
+    print(x)
+    print(y)
+
+    return x, y
+
+
 def load_dataset_full(filename):
     # load the dataset
     dataset = np.genfromtxt(filename, delimiter=',')
