@@ -81,14 +81,20 @@ elements_prediction: List[CMapMatrixElement] = []
 rowsdict = {}
 colsdict = {}
 
-input_file = "./data/random1/raw_buffer.csv"
-input_file = "./data/exp_39.csv"
-# model_file = root_crt_model_folder + "/" + "exp_39_4_top.h5"
-model_file = root_crt_model_folder + "/" + "exp_39_5_top.h5"
+
+use_random_exp = True
+
+if use_random_exp:
+    input_file = "./data/random1/raw_buffer.csv"
+    input_file = "./data/random1/exp_179.csv"
+    model_file = root_crt_model_folder + "/" + "exp_39_5_top.h5"
+else:
+    input_file = "./data/exp_39.csv"
+    model_file = root_crt_model_folder + "/" + "exp_39_4_top.h5"
 
 nvalves = config["n_valves"]
 
-rowskip = 500
+
 nrowskip = 0
 
 eval_rowskip = False
@@ -105,6 +111,9 @@ print(s)
 nrows = s[0]
 ncols = s[1]
 
+n_bins = 20
+rowskip = int(nrows/n_bins)
+
 s2 = np.shape(y1)
 yrows = s2[0]
 ycols = s2[1]
@@ -114,6 +123,7 @@ X = []
 y = []
 
 nrows2 = 0
+rowindex = 0
 
 for r in range(nrows):
     elements_buffer = []
@@ -132,7 +142,9 @@ for r in range(nrows):
         nrowskip = 0
         comp_eval = True
         for e in elements_buffer:
+            e.j = rowindex
             elements.append(e)
+        rowindex += 1
 
     if comp_eval:
         y.append([])
@@ -196,7 +208,15 @@ with tf.Session(graph=tfgraph):
         print(sizep)
 
     # predictions = deep_learning.binarize_predictions(predictions, 0.2, 0.8)
-    predictions = deep_learning.binarize_predictions(predictions, 0.4, 0.6)
+    # with open("eval.txt", "w") as f:
+    #     for i in range(sizep[0]):
+    #         for j in range(sizep[1]):
+    #             f.write(str(predictions[i,j]) + ",")
+    #         f.write("\n")
+    # quit()
+    # predictions = deep_learning.binarize_predictions_mean(predictions)
+    predictions = deep_learning.binarize_predictions_max(predictions)
+
     predictions_str = prep.adapt_input(predictions)
     # print(predictions_str[0:10])
     predictions_orig = predictions
@@ -239,11 +259,19 @@ print(predictions[0][0])
 print(y_orig[0])
 print(y_orig[0][0])
 
+multiple_ones_count = 0
+nrowskip = 0
+rowindex = 0
 
 # get the matching predictions for the original encoding
 for i in range(nrows):
     m = True
     elements_buffer: List[CMapMatrixElement] = []
+    n_ones = np.sum(predictions[i])
+    if n_ones > 1:
+        multiple_ones_count += 1
+        # print("multiple ones: ", predictions[i])
+
     for j in range(ncols):
         e = CMapMatrixElement()
         e.i = j
@@ -253,8 +281,15 @@ for i in range(nrows):
         if predictions[i][j] != y_orig[i][j]:
             m = False
             break
-    for e in elements_buffer:
-        elements_prediction.append(e)
+
+    nrowskip += 1
+
+    if nrowskip >= rowskip:
+        nrowskip = 0
+        for e in elements_buffer:
+            e.j = rowindex
+            elements_prediction.append(e)
+        rowindex += 1
     if m:
         match_count += 1
     else:
@@ -268,17 +303,39 @@ print("Real accuracy: ", match_count/len(predictions)*100)
 
 print(nomatch[0:10])
 
+print("multiple ones: ", multiple_ones_count)
+
 # quit()
-# print(elements)
+print(len(elements))
+print(len(elements_prediction))
 
-quit()
+# quit()
 
+# nrows = len(elements_prediction)
+nrows = n_bins
 
 xlabels = [("v" + str(i + 1)) for i in range(nvalves)]
 ylabels = [(str(int(i * rowskip / 100))) for i in range(nrows)]
+
 # xlabels = []
 # ylabels = []
 
+# format matches
+intersection_matrix = np.zeros((nvalves, nrows))
+for e in elements:
+    intersection_matrix[e.i][e.j] = e
+
+intersection_matrix_prediction = np.zeros((nvalves, nrows), dtype=CMapMatrixElement)
+for e in elements_prediction:
+    intersection_matrix_prediction[e.i][e.j] = e
+
+# check for matching cases
+# highlight non-matching cases
+for row in range(nvalves):
+    if intersection_matrix[row] != intersection_matrix_prediction[row]:
+        for col in range(nrows):
+            if intersection_matrix[row][col] == 1:
+                intersection_matrix[row][col].val = 0.5
 
 def plot_intersection_matrix(elements: List[CMapMatrixElement], index, save):
     # intersection_matrix = np.random.randint(0, 10, size=(max_val, max_val))
@@ -287,9 +344,12 @@ def plot_intersection_matrix(elements: List[CMapMatrixElement], index, save):
    # print(intersection_matrix)
 
     for e in elements:
+        print(e.i, e.j)
         intersection_matrix[e.i][e.j] = e.val
 
     print(intersection_matrix)
+
+    print(np.shape(intersection_matrix))
 
     fig = graph.plot_matrix_cmap_plain(
         elements, nvalves, nrows, "Valve Sequence", "sample x" + str(rowskip), "valves",  xlabels, ylabels)

@@ -318,6 +318,49 @@ def eval_model_RNN(model, X, y, ndata):
 
     return accuracy
 
+def binarize_predictions_mean(x):
+    s = np.shape(x)
+    rows = s[0]
+    cols = s[1]
+
+    for i in range(0, rows):
+        threshold = np.mean(x[i])
+        for j in range(0, cols):
+            if x[i, j] > threshold:
+                x[i, j] = 1
+            else:
+                x[i, j] = 0
+                
+    return x
+
+def binarize_predictions_max(x):
+    s = np.shape(x)
+    rows = s[0]
+    cols = s[1]
+
+    for i in range(0, rows):
+        threshold = np.max(x[i])
+        for j in range(0, cols):
+            if x[i, j] == threshold:
+                x[i, j] = 1
+            else:
+                x[i, j] = 0
+                
+    return x
+
+def binarize_predictions_1(x, threshold):
+    s = np.shape(x)
+    rows = s[0]
+    cols = s[1]
+
+    for i in range(0, rows):
+        for j in range(0, cols):
+            if x[i, j] > threshold:
+                x[i, j] = 1
+            else:
+                x[i, j] = 0
+                
+    return x
 
 def binarize_predictions(x, low, high):
     s = np.shape(x)
