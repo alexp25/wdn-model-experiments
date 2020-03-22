@@ -16,6 +16,7 @@ import tensorflow as tf
 from keras import backend as K
 
 import yaml
+import pickle
 
 # import copy
 
@@ -69,8 +70,13 @@ if config["one_hot_encoding"]:
 # quit()
 
 
-use_random_exp = False
+use_random_exp = True
 use_matching_random_model = True
+from_file = True
+
+eval_rowskip = False
+use_post_rowskip = False
+
 
 if not use_random_exp:
     use_matching_random_model = False
@@ -93,7 +99,10 @@ colsdict = {}
 if use_random_exp:
     # input_file = "./data/random1/raw_buffer.csv"
     input_file = "./data/random1/exp_179.csv"
-    model_file = root_crt_model_folder + "/" + "exp_39_5_top.h5"
+    if use_matching_random_model:
+        model_file = root_crt_model_folder + "/" + "exp_179_4_top.h5"
+    else:
+        model_file = root_crt_model_folder + "/" + "exp_39_5_top.h5"
 else:
     input_file = "./data/exp_39.csv"
     model_file = root_crt_model_folder + "/" + "exp_39_5_top.h5"
@@ -103,7 +112,7 @@ nvalves = config["n_valves"]
 
 nrowskip = 0
 
-eval_rowskip = False
+
 
 # X1, y1 = loader.load_dataset_raw_buffer(input_file)
 X1, y1, _, _ = loader.load_dataset(input_file)
@@ -117,7 +126,7 @@ print(s)
 nrows = s[0]
 ncols = s[1]
 
-use_post_rowskip = True
+
 
 n_bins = 20
 rowskip = int(nrows/n_bins)
@@ -199,7 +208,6 @@ print(sizey)
 
 # print(prep.decode_int_onehot(y))
 # quit()
-
 
 # create tensorflow graph session
 tfgraph = tf.Graph()
@@ -331,7 +339,8 @@ if not use_post_rowskip:
     nrows = n_bins
 
 xlabels = [("v" + str(i + 1)) for i in range(nvalves)]
-ylabels = [(str(int(i * rowskip / 100))) for i in range(n_bins)]
+# ylabels = [(str(int(i * rowskip / 100))) for i in range(n_bins)]
+ylabels = [(" ") for i in range(n_bins)]
 
 # xlabels = []
 # ylabels = []
@@ -370,19 +379,20 @@ def check_equal_rows(row1, row2):
 savefig = True
 
 
-def plot_intersection_matrix(elements: List[CMapMatrixElement], index, save):
-    # intersection_matrix = np.random.randint(0, 10, size=(max_val, max_val))
-    intersection_matrix = np.zeros((nvalves, nrows))
+def get_intersection_matrix(elements: List[CMapMatrixElement], rows, cols):
+    intersection_matrix = np.zeros((rows, cols))
 
     for e in elements:
         intersection_matrix[e.i][e.j] = e.val
 
-    print(intersection_matrix)
+    return intersection_matrix
 
-    print(np.shape(intersection_matrix))
 
+def plot_intersection_matrix(elements: List[CMapMatrixElement], index, save):
+    # fig = graph.plot_matrix_cmap_plain(
+    #     elements, nvalves, nrows, "Valve Sequence", "sample x" + str(rowskip), "valves",  xlabels, ylabels)
     fig = graph.plot_matrix_cmap_plain(
-        elements, nvalves, nrows, "Valve Sequence", "sample x" + str(rowskip), "valves",  xlabels, ylabels)
+        elements, nvalves, nrows, "", "", "valves",  xlabels, ylabels)
     if save:
         graph.save_figure(fig, "./figs/valve_sequence_" + str(index))
 
@@ -391,7 +401,6 @@ def plot_intersection_matrix(elements: List[CMapMatrixElement], index, save):
 
 intersection_matrix_buffer = [
     [0 for i in range(nvalves)] for j in range(post_rowskip)]
-
 
 print(nrows)
 print(nvalves)
@@ -406,7 +415,8 @@ if use_post_rowskip:
     nrowskip = 0
     for row in range(nrows):
         row1 = [e.val if e is not None else 0 for e in intersection_matrix[row]]
-        row2 = [e.val if e is not None else 0 for e in intersection_matrix_prediction[row]]
+        row2 = [
+            e.val if e is not None else 0 for e in intersection_matrix_prediction[row]]
 
         if check_equal_rows(row1, row2):
             for col in range(nvalves):
@@ -441,10 +451,13 @@ if use_post_rowskip:
             e = CMapMatrixElement()
             e.i = col
             e.j = row
-            if intersection_matrix[row * post_rowskip][col].val == 1:
-                e.val = avg_rows_list[row][col]
-            else:
-                e.val = 0
+            e.val = avg_rows_list[row][col]
+
+            # if intersection_matrix[row * post_rowskip][col].val == 1:
+            #     e.val = avg_rows_list[row][col]
+            # else:
+            #     e.val = 0
+
             elements_combined.append(e)
 
 # print(elements_combined)
@@ -463,8 +476,46 @@ if use_post_rowskip:
 # for e in elements:
 #     print(e.i, e.j)
 
+
+def plot_intersection_matrix2(elements, index, nrows, ncols, save, scale):
+    fig = graph.plot_matrix_cmap_plain(
+        elements, nrows, ncols, "", "", "",  xlabels, ylabels, scale)
+    if save:
+        graph.save_figure(fig, "./figs/valve_sequence_" + str(index))
+
+
 if not use_post_rowskip:
+
+    with open("elem1.dat", "wb") as f:
+        pickle.dump(elements, f)
+    with open("elem2.dat", "wb") as f:
+        pickle.dump(elements_prediction, f)
+
     plot_intersection_matrix(elements, 1, savefig)
     plot_intersection_matrix(elements_prediction, 2, savefig)
 else:
-    plot_intersection_matrix(elements_combined, 3, savefig)
+    # print(len(elements_combined))
+    elements_combined = elements_combined[0:n_bins]
+
+    for (i, e) in enumerate(elements_combined):
+        e.i = 0
+        e.j = i
+        elements.append(e)
+
+    print(elements_combined)
+
+    n_bins = len(elements_combined)
+
+    # xlabels.append("p ")
+
+    # plot_intersection_matrix(elements, 4, savefig)
+    # plot_intersection_matrix2(elements_combined, 3, 1, n_bins, True, (0, 1))
+
+    with open("elem.dat", "wb") as f:
+        pickle.dump(elements_combined, f)
+
+    # imatrix = get_intersection_matrix(elements_combined, nvalves, 1)
+    # print(imatrix)
+
+    # plot_intersection_matrix(imatrix, 3, savefig)
+    # print(get_intersection_matrix(elements_combined))

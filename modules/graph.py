@@ -322,7 +322,7 @@ def plot_barchart(labels, values, xlabel, ylabel, title, color):
 
 
 def heatmap(data, row_labels, col_labels, ax=None,
-            cbar_kw={}, cbarlabel="", **kwargs):
+            cbar_kw={}, cbarlabel="", scale=None, **kwargs):
     """
     Create a heatmap from a numpy array and two lists of labels.
 
@@ -345,16 +345,28 @@ def heatmap(data, row_labels, col_labels, ax=None,
         All other arguments are forwarded to `imshow`.
     """
 
+    
     if not ax:
         ax = plt.gca()
 
     # Plot the heatmap
+
+    # ax.figure.clim(0, 1)
+
     im = ax.imshow(data, **kwargs)
+
+    # ax.figure.clim(0, 1)
+
+    if scale is not None:
+        for im in plt.gca().get_images():
+            im.set_clim(scale[0], scale[1])
 
     # Create colorbar
     cbar = None
     if cbarlabel is not None:
+
         cbar = ax.figure.colorbar(im, ax=ax, **cbar_kw)
+
         cbar.ax.set_ylabel(cbarlabel, rotation=-90, va="bottom")
 
     # We want to show all ticks...
@@ -365,8 +377,11 @@ def heatmap(data, row_labels, col_labels, ax=None,
     ax.set_yticklabels(row_labels)
 
     # Let the horizontal axes labeling appear on top.
-    ax.tick_params(top=True, bottom=False,
-                   labeltop=False, labelbottom=True)
+    # ax.tick_params(top=True, bottom=False,
+    #                labeltop=False, labelbottom=True)
+
+    ax.tick_params(top=False, bottom=False, left=False,
+                   labeltop=False, labelbottom=False)
 
     # Rotate the tick labels and set their alignment.
     # plt.setp(ax.get_xticklabels(), rotation=-30, ha="right",
@@ -480,7 +495,7 @@ def plot_matrix_cmap(elements: List[CMapMatrixElement], xsize, ysize, title, xla
     return fig
 
 
-def plot_matrix_cmap_plain(elements: List[CMapMatrixElement], xsize, ysize, title, xlabel, ylabel, xlabels, ylabels):
+def plot_matrix_cmap_plain(elements: List[CMapMatrixElement], xsize, ysize, title, xlabel, ylabel, xlabels, ylabels, scale=None):
 
     min_val, max_val = elements[0].val, elements[0].val
 
@@ -488,17 +503,24 @@ def plot_matrix_cmap_plain(elements: List[CMapMatrixElement], xsize, ysize, titl
     intersection_matrix = np.zeros((xsize, ysize))
 
     # print(intersection_matrix)
+
+    # intersection_matrix = np.zeros((xsize, ysize + 2))
+
     for e in elements:
         intersection_matrix[e.i][e.j] = e.val
+        print(e.val)
         if e.val < min_val:
             min_val = e.val
         if e.val > max_val:
             max_val = e.val
 
+    # intersection_matrix[0][ysize] = 0
+    # intersection_matrix[0][ysize+1] = 1
+
     fig, ax = plt.subplots()
 
     im, cbar = heatmap(intersection_matrix, xlabels, ylabels, ax=ax,
-                       cmap="Blues", cbarlabel=None)
+                       cmap="Blues", cbarlabel=None, scale=scale)
 
     set_disp(title, xlabel, ylabel)
 
