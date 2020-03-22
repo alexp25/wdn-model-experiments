@@ -28,8 +28,8 @@ input_file = config["input_file"]
 filenames = config["filenames"]
 bookmarks = config["bookmarks"]
 
-# root_data_folder += "/random1"
-# filenames = ["exp_179"]
+root_data_folder += "/random1"
+filenames = ["exp_179"]
 
 n_reps = 5
 append_timestamp = False

@@ -34,6 +34,7 @@ class CMapMatrixElement:
         self.ilabel = ""
         self.jlabel = ""
         self.val = 0
+        self.auxval = 0
 
 # class Timeseries(object):
 #     label = "None"

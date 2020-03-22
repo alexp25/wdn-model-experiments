@@ -68,10 +68,19 @@ if config["one_hot_encoding"]:
 
 # quit()
 
+
+use_random_exp = False
+use_matching_random_model = True
+
+if not use_random_exp:
+    use_matching_random_model = False
+
 if config["load_from_container"]:
     if use_rnn:
         root_crt_model_folder = config["root_model_container"] + \
             "/deep_rnn"
+        if use_matching_random_model:
+            root_crt_model_folder += "_random"
     else:
         root_crt_model_folder = config["root_model_container"] + "/deep"
 
@@ -81,16 +90,13 @@ elements_prediction: List[CMapMatrixElement] = []
 rowsdict = {}
 colsdict = {}
 
-
-use_random_exp = True
-
 if use_random_exp:
-    input_file = "./data/random1/raw_buffer.csv"
+    # input_file = "./data/random1/raw_buffer.csv"
     input_file = "./data/random1/exp_179.csv"
     model_file = root_crt_model_folder + "/" + "exp_39_5_top.h5"
 else:
     input_file = "./data/exp_39.csv"
-    model_file = root_crt_model_folder + "/" + "exp_39_4_top.h5"
+    model_file = root_crt_model_folder + "/" + "exp_39_5_top.h5"
 
 nvalves = config["n_valves"]
 
@@ -111,8 +117,15 @@ print(s)
 nrows = s[0]
 ncols = s[1]
 
+use_post_rowskip = True
+
 n_bins = 20
 rowskip = int(nrows/n_bins)
+
+if use_post_rowskip:
+    rowskip = 1
+
+post_rowskip = int(nrows/n_bins)
 
 s2 = np.shape(y1)
 yrows = s2[0]
@@ -127,6 +140,7 @@ rowindex = 0
 
 for r in range(nrows):
     elements_buffer = []
+
     for c in range(ycols):
         e = CMapMatrixElement()
         e.i = c
@@ -312,39 +326,55 @@ print(len(elements_prediction))
 # quit()
 
 # nrows = len(elements_prediction)
-nrows = n_bins
+
+if not use_post_rowskip:
+    nrows = n_bins
 
 xlabels = [("v" + str(i + 1)) for i in range(nvalves)]
-ylabels = [(str(int(i * rowskip / 100))) for i in range(nrows)]
+ylabels = [(str(int(i * rowskip / 100))) for i in range(n_bins)]
 
 # xlabels = []
 # ylabels = []
 
 # format matches
-intersection_matrix = np.zeros((nvalves, nrows))
+
+# intersection_matrix = [[None for i in range(nvalves)] for j in range(nrows)]
+# intersection_matrix_prediction = [[None for i in range(nvalves)] for j in range(nrows)]
+
+intersection_matrix = [[None for i in range(nvalves)] for j in range(nrows)]
+intersection_matrix_prediction = [
+    [None for i in range(nvalves)] for j in range(nrows)]
+
+# print(len(intersection_matrix))
+# print(len(intersection_matrix[0]))
+
 for e in elements:
-    intersection_matrix[e.i][e.j] = e
+    intersection_matrix[e.j][e.i] = e
 
-intersection_matrix_prediction = np.zeros((nvalves, nrows), dtype=CMapMatrixElement)
 for e in elements_prediction:
-    intersection_matrix_prediction[e.i][e.j] = e
+    intersection_matrix_prediction[e.j][e.i] = e
 
-# check for matching cases
-# highlight non-matching cases
-for row in range(nvalves):
-    if intersection_matrix[row] != intersection_matrix_prediction[row]:
-        for col in range(nrows):
-            if intersection_matrix[row][col] == 1:
-                intersection_matrix[row][col].val = 0.5
+# print(intersection_matrix)
+# print(intersection_matrix_prediction)
+
+
+def check_equal_rows(row1, row2):
+    eq = True
+    for i in range(len(row1)):
+        if row1[i] != row2[i]:
+            eq = False
+            break
+    return eq
+
+
+savefig = True
+
 
 def plot_intersection_matrix(elements: List[CMapMatrixElement], index, save):
     # intersection_matrix = np.random.randint(0, 10, size=(max_val, max_val))
     intersection_matrix = np.zeros((nvalves, nrows))
 
-   # print(intersection_matrix)
-
     for e in elements:
-        print(e.i, e.j)
         intersection_matrix[e.i][e.j] = e.val
 
     print(intersection_matrix)
@@ -357,6 +387,84 @@ def plot_intersection_matrix(elements: List[CMapMatrixElement], index, save):
         graph.save_figure(fig, "./figs/valve_sequence_" + str(index))
 
 
-savefig = True
-plot_intersection_matrix(elements, 0, savefig)
-plot_intersection_matrix(elements_prediction, 1, savefig)
+# plot_intersection_matrix(elements, 0, savefig)
+
+intersection_matrix_buffer = [
+    [0 for i in range(nvalves)] for j in range(post_rowskip)]
+
+
+print(nrows)
+print(nvalves)
+print(post_rowskip)
+
+# check for matching cases
+# highlight non-matching cases
+
+if use_post_rowskip:
+    avg_rows_list = []
+
+    nrowskip = 0
+    for row in range(nrows):
+        row1 = [e.val if e is not None else 0 for e in intersection_matrix[row]]
+        row2 = [e.val if e is not None else 0 for e in intersection_matrix_prediction[row]]
+
+        if check_equal_rows(row1, row2):
+            for col in range(nvalves):
+                intersection_matrix_buffer[nrowskip][col] += 1
+
+        nrowskip += 1
+
+        if nrowskip >= post_rowskip:
+            # print(row1)
+            # print(row2)
+            nrowskip_crt = nrowskip
+            nrowskip = 0
+            avg_rows: List[int] = []
+            for col in range(nvalves):
+                avg_rows.append(0)
+                for r in range(nrowskip_crt):
+                    val = intersection_matrix_buffer[r][col]
+                    # print(val)
+                    avg_rows[col] += val
+                    intersection_matrix_buffer[r][col] = 0
+                avg_rows[col] /= nrowskip_crt
+            avg_rows_list.append(avg_rows)
+            print(avg_rows)
+
+    elements_combined: List[CMapMatrixElement] = []
+
+    nrows = len(avg_rows_list)
+    ncols = len(avg_rows_list[0])
+
+    for row in range(nrows):
+        for col in range(ncols):
+            e = CMapMatrixElement()
+            e.i = col
+            e.j = row
+            if intersection_matrix[row * post_rowskip][col].val == 1:
+                e.val = avg_rows_list[row][col]
+            else:
+                e.val = 0
+            elements_combined.append(e)
+
+# print(elements_combined)
+
+# nrowskip = 0
+# for row in range(nrows):
+#     row1 = [e.val for e in intersection_matrix[row] if e is not None]
+#     row2 = [e.val for e in intersection_matrix_prediction[row] if e is not None]
+#     if not check_equal_rows(row1, row2):
+#         for col in range(nvalves):
+#             if intersection_matrix[row][col].val == 1:
+#                 intersection_matrix[row][col].val = 0.5
+
+# quit()
+
+# for e in elements:
+#     print(e.i, e.j)
+
+if not use_post_rowskip:
+    plot_intersection_matrix(elements, 1, savefig)
+    plot_intersection_matrix(elements_prediction, 2, savefig)
+else:
+    plot_intersection_matrix(elements_combined, 3, savefig)
