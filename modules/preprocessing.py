@@ -127,3 +127,16 @@ class Preprocessing:
         print("invalid count: " + str(invalid_count))
         return res
 
+
+def get_samples_nbins(a, bins):
+    skip = int(len(a) / bins)
+    b = get_samples_skip(a, skip)
+    return b[:bins]
+
+def get_samples_skip(a, skip):
+    b = []
+    for i, e in enumerate(a):
+        if i % skip == 0:
+            b.append(e)
+    return b
+

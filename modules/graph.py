@@ -4,6 +4,7 @@ from io import BytesIO, StringIO
 import matplotlib.pyplot as plt
 import mpld3
 from matplotlib.pyplot import figure
+from matplotlib.gridspec import GridSpec
 from typing import List
 import numpy as np
 import math
@@ -125,9 +126,21 @@ def stem_timeseries_multi(timeseries_array: List[Timeseries], title, xlabel, yla
     return fig, mpld3.fig_to_html(fig)
 
 
-def plot_timeseries_ax(timeseries: Timeseries, title, xlabel, ylabel, fig, ax):
+def plot_timeseries_ax(timeseries: Timeseries, title, xlabel, ylabel, fig, ax, vlines):
     ax.plot(timeseries.x, timeseries.y)
     # set_disp(title, xlabel, ylabel)
+
+    if vlines is not None:
+        for vline in vlines:
+            ax.axvline(x=vline, ymin=0, ymax=1, c="coral", ls="-")
+
+    if title:
+        ax.set_title(title)
+    if xlabel:
+        ax.set_xlabel(xlabel)
+    if ylabel:
+        ax.set_ylabel(ylabel)
+
     # plt.legend()
     # plt.show()
     return fig
@@ -371,9 +384,7 @@ def heatmap(data, row_labels, col_labels, ax=None,
     # Create colorbar
     cbar = None
     if cbarlabel is not None:
-
         cbar = ax.figure.colorbar(im, ax=ax, **cbar_kw)
-
         cbar.ax.set_ylabel(cbarlabel, rotation=-90, va="bottom")
 
     # We want to show all ticks...
@@ -401,7 +412,8 @@ def heatmap(data, row_labels, col_labels, ax=None,
     ax.set_xticks(np.arange(data.shape[1]+1)-.5, minor=True)
     ax.set_yticks(np.arange(data.shape[0]+1)-.5, minor=True)
 
-    ax.grid(which="minor", color="w", linestyle='-', linewidth=3)
+    # ax.grid(which="minor", color="w", linestyle='-', linewidth=3)
+    ax.grid(which="minor", color="w", linestyle='-', linewidth=0)
     ax.tick_params(which="minor", bottom=False, left=False)
 
     return im, cbar
@@ -537,30 +549,56 @@ def plot_matrix_cmap_plain(elements: List[CMapMatrixElement], xsize, ysize, titl
     return fig
 
 
-def get_n_ax(n, figsize=None):
+def get_n_ax(n, figsize=None, height_ratios=None):
     if figsize:
-        fig, ax = plt.subplots(nrows=n, ncols=1, figsize=figsize)
-    else:   
+        # print(n)
+        if height_ratios is not None:
+            fig, ax = plt.subplots(nrows=n, ncols=1, figsize=figsize, gridspec_kw={
+                                   'height_ratios': height_ratios})
+        else:
+            fig, ax = plt.subplots(nrows=n, ncols=1, figsize=figsize)
+
+        # fig = plt.figure(figsize=figsize)
+        # gs = GridSpec(n, 1)
+        # ax = []
+        # for row in range(n):
+        #     ax1 = plt.subplot(gs[row, 0])
+        #     ax.append(ax1)
+    else:
         fig, ax = plt.subplots(nrows=n, ncols=1)
     return fig, ax
 
-def plot_matrix_cmap_plain_ax(elements: List[CMapMatrixElement], xsize, ysize, title, xlabel, ylabel, xlabels, ylabels, scale, fig, ax):
 
+def plot_matrix_cmap_plain_ax(elements: List[CMapMatrixElement], xsize, ysize, title, xlabel, ylabel, xlabels, ylabels, scale, fig, ax, annotate, cmap):
     min_val, max_val = elements[0].val, elements[0].val
-
     intersection_matrix = np.zeros((xsize, ysize))
+    print(np.shape(intersection_matrix))
 
     for e in elements:
         intersection_matrix[e.i][e.j] = e.val
-        print(e.val)
+        # print(e.i, e.j, e.val)
         if e.val < min_val:
             min_val = e.val
         if e.val > max_val:
             max_val = e.val
 
+    # cmap = "RdYlGn"
+    # cmap = "Blues"
+
+    
 
     im, cbar = heatmap(intersection_matrix, xlabels, ylabels, ax=ax,
-                       cmap="Blues", cbarlabel=None, scale=scale)
+                       cmap=cmap, cbarlabel=None, scale=scale, aspect=1.3)
+
+    # forceAspect(im, ax, 1.0)
+
+    def millions(x, pos):
+        'The two args are the value and tick position'
+        return '%d' % (x)
+        # return str(x)
+
+    if annotate:
+        texts = annotate_heatmap(im, valfmt=millions)
 
     set_disp(title, xlabel, ylabel)
 

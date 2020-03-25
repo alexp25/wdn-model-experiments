@@ -118,6 +118,9 @@ nrowskip = 0
 # X1, y1 = loader.load_dataset_raw_buffer(input_file)
 X1, y1, _, _ = loader.load_dataset(input_file)
 
+# X1 = X1[120:1700]
+# y1 = y1[120:1700]
+
 # binarize the outputs
 y1 = loader.binarize(y1)
 

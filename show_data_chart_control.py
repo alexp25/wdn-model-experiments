@@ -38,7 +38,6 @@ else:
 
 
 def remove_outliers(data):
-
     sdata = np.shape(data)
     rows = sdata[0]
     cols = sdata[1]
@@ -52,8 +51,6 @@ def remove_outliers(data):
     return data
 
 def reorder(x, order):
-  
-
     x_ord = []
 
     for (i, ord) in enumerate(order):
