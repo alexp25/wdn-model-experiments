@@ -23,6 +23,12 @@ def get_intersection_matrix(elements: List[CMapMatrixElement], rows, cols):
     return intersection_matrix
 
 
+def plot_intersection_matrix_ax(elements, index, nrows, ncols, save, scale, fig, ax):
+    fig = graph.plot_matrix_cmap_plain_ax(
+        elements, nrows, ncols, "", "", "",  xlabels, ylabels, scale, fig, ax)
+    if save:
+        graph.save_figure(fig, "./figs/valve_sequence_random_prediction")
+        
 def plot_intersection_matrix(elements, index, nrows, ncols, save, scale):
     fig = graph.plot_matrix_cmap_plain(
         elements, nrows, ncols, "", "", "",  xlabels, ylabels, scale)

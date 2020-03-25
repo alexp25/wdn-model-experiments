@@ -63,6 +63,17 @@ def load_dataset_full(filename):
     dataset = np.genfromtxt(filename, delimiter=',')
     return dataset
 
+def load_dataset_full_with_header(filename):
+    # load the dataset
+    header = []
+    with open(filename, "r") as f:
+        header = f.read().split("\n")[0].split(",")
+
+    dataset = np.genfromtxt(filename, delimiter=',')
+    dataset = dataset[1:]
+
+    return dataset, header
+
 def load_dataset(filename):
     # load the dataset
     with open(filename, "r") as f:

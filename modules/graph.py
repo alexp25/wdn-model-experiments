@@ -48,9 +48,9 @@ def plot_timeseries_multi_sub2(timeseries_arrays: List[List[Timeseries]], title,
     id = 0
 
     fig = plt.figure(id, figsize=(9, 16))
-
+    n_sub = len(timeseries_arrays)
     for (i, timeseries_array) in enumerate(timeseries_arrays):
-        plt.subplot(211 + i)
+        plt.subplot(n_sub * 100 + 11 + i)
         for ts in timeseries_array:
             x = ts.x
             y = ts.y
@@ -123,6 +123,14 @@ def stem_timeseries_multi(timeseries_array: List[Timeseries], title, xlabel, yla
     plt.show()
 
     return fig, mpld3.fig_to_html(fig)
+
+
+def plot_timeseries_ax(timeseries: Timeseries, title, xlabel, ylabel, fig, ax):
+    ax.plot(timeseries.x, timeseries.y)
+    # set_disp(title, xlabel, ylabel)
+    # plt.legend()
+    # plt.show()
+    return fig
 
 
 def plot_timeseries(timeseries: Timeseries, title, xlabel, ylabel):
@@ -345,7 +353,6 @@ def heatmap(data, row_labels, col_labels, ax=None,
         All other arguments are forwarded to `imshow`.
     """
 
-    
     if not ax:
         ax = plt.gca()
 
@@ -524,6 +531,41 @@ def plot_matrix_cmap_plain(elements: List[CMapMatrixElement], xsize, ysize, titl
 
     set_disp(title, xlabel, ylabel)
 
+    fig.tight_layout()
+    plt.show()
+
+    return fig
+
+
+def get_n_ax(n, figsize=None):
+    if figsize:
+        fig, ax = plt.subplots(nrows=n, ncols=1, figsize=figsize)
+    else:   
+        fig, ax = plt.subplots(nrows=n, ncols=1)
+    return fig, ax
+
+def plot_matrix_cmap_plain_ax(elements: List[CMapMatrixElement], xsize, ysize, title, xlabel, ylabel, xlabels, ylabels, scale, fig, ax):
+
+    min_val, max_val = elements[0].val, elements[0].val
+
+    intersection_matrix = np.zeros((xsize, ysize))
+
+    for e in elements:
+        intersection_matrix[e.i][e.j] = e.val
+        print(e.val)
+        if e.val < min_val:
+            min_val = e.val
+        if e.val > max_val:
+            max_val = e.val
+
+
+    im, cbar = heatmap(intersection_matrix, xlabels, ylabels, ax=ax,
+                       cmap="Blues", cbarlabel=None, scale=scale)
+
+    set_disp(title, xlabel, ylabel)
+
+
+def show_fig(fig):
     fig.tight_layout()
     plt.show()
 

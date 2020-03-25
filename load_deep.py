@@ -37,6 +37,12 @@ custom_output = False
 # filenames = ["exp_179"]
 # model_filenames = ["exp_39"]
 
+
+root_data_folder += "/control/2"
+filenames = ["exp_217"]
+model_filenames = ["exp_217"]
+
+
 # set this as in saved models folder
 n_reps = 5
 
@@ -61,7 +67,7 @@ if config["one_hot_encoding"]:
 
 if config["load_from_container"]:
     if use_rnn:
-        root_crt_model_folder = config["root_model_container"] + "/deep_rnn"
+        root_crt_model_folder = config["root_model_container"] + "/deep_rnn_control"
     else:
         root_crt_model_folder = config["root_model_container"] + "/deep"
 

@@ -75,7 +75,7 @@ use_matching_random_model = True
 from_file = True
 
 eval_rowskip = False
-use_post_rowskip = False
+use_post_rowskip = True
 
 
 if not use_random_exp:
@@ -86,7 +86,7 @@ if config["load_from_container"]:
         root_crt_model_folder = config["root_model_container"] + \
             "/deep_rnn"
         if use_matching_random_model:
-            root_crt_model_folder += "_random"
+            root_crt_model_folder += "_control"
     else:
         root_crt_model_folder = config["root_model_container"] + "/deep"
 
@@ -98,9 +98,11 @@ colsdict = {}
 
 if use_random_exp:
     # input_file = "./data/random1/raw_buffer.csv"
-    input_file = "./data/random1/exp_179.csv"
+    # input_file = "./data/random1/exp_179.csv"
+    input_file = "./data/control/2/exp_217.csv"
     if use_matching_random_model:
-        model_file = root_crt_model_folder + "/" + "exp_179_4_top.h5"
+        # model_file = root_crt_model_folder + "/" + "exp_179_4_top.h5"
+        model_file = root_crt_model_folder + "/" + "exp_217_2_top.h5"
     else:
         model_file = root_crt_model_folder + "/" + "exp_39_5_top.h5"
 else:
@@ -111,7 +113,6 @@ nvalves = config["n_valves"]
 
 
 nrowskip = 0
-
 
 
 # X1, y1 = loader.load_dataset_raw_buffer(input_file)
@@ -125,7 +126,6 @@ print(s)
 
 nrows = s[0]
 ncols = s[1]
-
 
 
 n_bins = 20
