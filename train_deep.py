@@ -31,8 +31,8 @@ bookmarks = config["bookmarks"]
 # root_data_folder += "/random1"
 # filenames = ["exp_179"]
 
-root_data_folder += "/control/2"
-filenames = ["exp_217"]
+# root_data_folder += "/control/2"
+# filenames = ["exp_217"]
 
 n_reps = 5
 append_timestamp = False

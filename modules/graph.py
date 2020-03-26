@@ -10,6 +10,18 @@ import numpy as np
 import math
 
 
+# FSIZE_TITLE = 16
+# FSIZE_LABEL = 14
+# FSIZE_LABEL_S = 14
+# FSIZE_LABEL_XS = 12
+
+
+FSIZE_TITLE = 16
+FSIZE_LABEL = 18
+FSIZE_LABEL_S = 18
+FSIZE_LABEL_XS = 12
+
+
 class Timeseries:
     # declare props as object NOT class props!
     def __init__(self):
@@ -51,10 +63,14 @@ def plot_timeseries_multi_sub2(timeseries_arrays: List[List[Timeseries]], title,
     fig = plt.figure(id, figsize=(9, 16))
     n_sub = len(timeseries_arrays)
     for (i, timeseries_array) in enumerate(timeseries_arrays):
+
+        set_plot_font()
+
         plt.subplot(n_sub * 100 + 11 + i)
         for ts in timeseries_array:
             x = ts.x
             y = ts.y
+
             plt.plot(x, y, label=ts.label, color=ts.color)
             if i == 0:
                 set_disp(title[i], "", ylabel[i])
@@ -62,12 +78,19 @@ def plot_timeseries_multi_sub2(timeseries_arrays: List[List[Timeseries]], title,
                 set_disp(title[i], xlabel, ylabel[i])
             plt.legend()
 
+    # ax.tick_params(axis = 'both', which = 'major', labelsize = FSIZE_LABEL_XS)
+    # ax.tick_params(axis = 'both', which = 'minor', labelsize = FSIZE_LABEL_XS)
+
     fig = plt.gcf()
 
     plt.show()
 
     return fig, mpld3.fig_to_html(fig)
 
+def set_plot_font():
+    plt.rc('xtick', labelsize=FSIZE_LABEL_XS)
+    plt.rc('ytick', labelsize=FSIZE_LABEL_XS)
+    plt.rc('legend', fontsize=FSIZE_LABEL_XS)
 
 def plot_timeseries_multi(timeseries_array: List[Timeseries], title, xlabel, ylabel, separate):
     matplotlib.style.use('default')
@@ -77,6 +100,8 @@ def plot_timeseries_multi(timeseries_array: List[Timeseries], title, xlabel, yla
 
     if not separate:
         fig = plt.figure(id)
+
+    set_plot_font()
 
     for ts in timeseries_array:
         if separate:
@@ -127,6 +152,8 @@ def stem_timeseries_multi(timeseries_array: List[Timeseries], title, xlabel, yla
 
 
 def plot_timeseries_ax(timeseries: Timeseries, title, xlabel, ylabel, fig, ax, vlines):
+    set_plot_font()
+    
     ax.plot(timeseries.x, timeseries.y)
     # set_disp(title, xlabel, ylabel)
 
@@ -134,12 +161,7 @@ def plot_timeseries_ax(timeseries: Timeseries, title, xlabel, ylabel, fig, ax, v
         for vline in vlines:
             ax.axvline(x=vline, ymin=0, ymax=1, c="coral", ls="-")
 
-    if title:
-        ax.set_title(title)
-    if xlabel:
-        ax.set_xlabel(xlabel)
-    if ylabel:
-        ax.set_ylabel(ylabel)
+    set_disp_ax(ax, title, xlabel, ylabel)
 
     # plt.legend()
     # plt.show()
@@ -172,13 +194,22 @@ def save_figure(fig, file):
     fig.savefig(file, dpi=300)
 
 
+def set_disp_ax(ax, title, xlabel, ylabel):
+    if title:
+        ax.set_title(title,  fontsize=FSIZE_TITLE)
+    if xlabel:
+        ax.set_xlabel(xlabel, fontsize=FSIZE_LABEL)
+    if ylabel:
+        ax.set_ylabel(ylabel, fontsize=FSIZE_LABEL)
+
+
 def set_disp(title, xlabel, ylabel):
     if title:
-        plt.gca().set_title(title)
+        plt.gca().set_title(title, fontsize=FSIZE_TITLE)
     if xlabel:
-        plt.xlabel(xlabel)
+        plt.xlabel(xlabel, fontsize=FSIZE_LABEL)
     if ylabel:
-        plt.ylabel(ylabel)
+        plt.ylabel(ylabel, fontsize=FSIZE_LABEL)
 
 
 # fig = plt.figure()
@@ -223,6 +254,10 @@ def plot_barchart_multi_core(bss: List[Barseries], xlabel, ylabel, title, xlabel
         print("creating new figure")
         fig, ax = plt.subplots()
 
+    # ax = plt.gca()
+    ax.tick_params(axis='both', which='major', labelsize=FSIZE_LABEL_S)
+    ax.tick_params(axis='both', which='minor', labelsize=FSIZE_LABEL_S)
+
     n_groups = len(bss)
 
     if bcount != 0:
@@ -232,8 +267,10 @@ def plot_barchart_multi_core(bss: List[Barseries], xlabel, ylabel, title, xlabel
 
     if offset is None:
         # offset = -1 / (n_groups * 2 * bar_width + 1)
-        # offset = -bar_width/2
-        offset = bar_width/2
+        if n_groups == 2:
+            offset = bar_width/2
+        else:
+            offset = -bar_width/2
 
     # if n_groups == 1:
     #     bar_width = 1
@@ -270,9 +307,13 @@ def plot_barchart_multi_core(bss: List[Barseries], xlabel, ylabel, title, xlabel
             label=bss[i].label,
             zorder=3)
 
-    plt.xlabel(xlabel)
-    plt.ylabel(ylabel)
-    plt.title(title)
+    plt.xlabel(xlabel, fontsize=FSIZE_LABEL)
+    plt.ylabel(ylabel, fontsize=FSIZE_LABEL)
+    plt.title(title, fontsize=FSIZE_TITLE)
+
+    # plt.xlabel(xlabel)
+    # plt.ylabel(ylabel)
+    # plt.title(title)
 
     if n_groups == 1:
         plt.xticks(index, xlabels)
@@ -282,7 +323,7 @@ def plot_barchart_multi_core(bss: List[Barseries], xlabel, ylabel, title, xlabel
     if not legend_loc:
         legend_loc = "upper left"
 
-    plt.legend(loc=legend_loc)
+    plt.legend(loc=legend_loc, fontsize=FSIZE_LABEL)
 
     ax.grid(zorder=0)
 
@@ -293,6 +334,7 @@ def plot_barchart_multi_core(bss: List[Barseries], xlabel, ylabel, title, xlabel
     # plt.ylim([low, high])
 
     kscale = 0.01
+    # kscale = 0.25
 
     if not top:
         high = 100
@@ -303,6 +345,7 @@ def plot_barchart_multi_core(bss: List[Barseries], xlabel, ylabel, title, xlabel
 
     plt.ylim([low, high])
 
+    # set_fontsize()
     plt.tight_layout()
 
     if show:
@@ -310,6 +353,22 @@ def plot_barchart_multi_core(bss: List[Barseries], xlabel, ylabel, title, xlabel
         plt.show()
 
     return fig, ax
+
+
+def set_fontsize():
+    # SMALL_SIZE = 20
+    # MEDIUM_SIZE = 24
+    # BIGGER_SIZE = 28
+
+    # plt.rc('font', size=SMALL_SIZE)          # controls default text sizes
+    # plt.rc('axes', titlesize=SMALL_SIZE)     # fontsize of the axes title
+    # plt.rc('axes', labelsize=MEDIUM_SIZE)    # fontsize of the x and y labels
+    # plt.rc('xtick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
+    # plt.rc('ytick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
+    # plt.rc('legend', fontsize=SMALL_SIZE)    # legend fontsize
+    # plt.rc('figure', titlesize=BIGGER_SIZE)
+
+    matplotlib.rcParams.update({'font.size': 16})
 
 
 def plot_barchart(labels, values, xlabel, ylabel, title, color):
@@ -395,14 +454,17 @@ def heatmap(data, row_labels, col_labels, ax=None,
     ax.set_yticklabels(row_labels)
 
     # Let the horizontal axes labeling appear on top.
-    # ax.tick_params(top=True, bottom=False,
+    # ax.tick_params(top=False, bottom=True,
     #                labeltop=False, labelbottom=True)
 
     ax.tick_params(top=False, bottom=False, left=False,
-                   labeltop=False, labelbottom=False)
+                   labeltop=False, labelbottom=True)
 
     # Rotate the tick labels and set their alignment.
-    # plt.setp(ax.get_xticklabels(), rotation=-30, ha="right",
+    # plt.setp(ax.get_xticklabels(), rotation=30, ha="right",
+    #          rotation_mode="anchor")
+
+    # plt.setp(ax.get_yticklabels(), rotation=30, ha="right",
     #          rotation_mode="anchor")
 
     # Turn spines off and create white grid.
@@ -478,7 +540,7 @@ def annotate_heatmap(im, data=None, valfmt="{x:.2f}",
     return texts
 
 
-def plot_matrix_cmap(elements: List[CMapMatrixElement], xsize, ysize, title, xlabel, ylabel, xlabels, ylabels):
+def plot_matrix_cmap(elements: List[CMapMatrixElement], xsize, ysize, title, xlabel, ylabel, xlabels, ylabels, scale=None):
 
     min_val, max_val = elements[0].val, elements[0].val
 
@@ -495,8 +557,12 @@ def plot_matrix_cmap(elements: List[CMapMatrixElement], xsize, ysize, title, xla
 
     fig, ax = plt.subplots()
 
+    # ax = plt.gca()
+    ax.tick_params(axis='both', which='major', labelsize=FSIZE_LABEL_XS)
+    ax.tick_params(axis='both', which='minor', labelsize=FSIZE_LABEL_XS)
+
     im, cbar = heatmap(intersection_matrix, xlabels, ylabels, ax=ax,
-                       cmap="RdYlGn", cbarlabel="")
+                       cmap="RdYlGn", cbarlabel="", scale=scale)
 
     # texts = annotate_heatmap(im, valfmt="{x:.1f} t")
 
@@ -585,7 +651,8 @@ def plot_matrix_cmap_plain_ax(elements: List[CMapMatrixElement], xsize, ysize, t
     # cmap = "RdYlGn"
     # cmap = "Blues"
 
-    
+    ax.tick_params(axis='both', which='major', labelsize=FSIZE_LABEL_XS)
+    ax.tick_params(axis='both', which='minor', labelsize=FSIZE_LABEL_XS)
 
     im, cbar = heatmap(intersection_matrix, xlabels, ylabels, ax=ax,
                        cmap=cmap, cbarlabel=None, scale=scale, aspect=1.3)

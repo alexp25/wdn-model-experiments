@@ -1,12 +1,12 @@
 average accuracy results:
-eval_deep_1_test.csv: 90.36353330947634
-eval_deep_2_rnn_test.csv: 98.10423114113638
-eval_dtree_1_n_test.csv: 95.7587703810793
-eval_dtree_2_multioutput_test.csv: 97.96234903556169
+eval_deep_1_test.csv: 94.9587771380686
+eval_deep_2_rnn_test.csv: 99.61983164303497
+eval_dtree_1_test.csv: 99.48274722834316
+eval_dtree_2_multioutput_test.csv: 99.77087647511215
 
 top accuracy results:
-eval_deep_1_test.csv: 96.18927279684605
-eval_deep_2_rnn_test.csv: 98.2819106300017
-eval_dtree_1_n_test.csv: 96.006054958111
-eval_dtree_2_multioutput_test.csv: 98.07905088694959
+eval_deep_1_test.csv: 99.75269553054056
+eval_deep_2_rnn_test.csv: 99.79328672362847
+eval_dtree_1_test.csv: 99.49636443277878
+eval_dtree_2_multioutput_test.csv: 99.78151083364963
 

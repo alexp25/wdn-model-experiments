@@ -21,10 +21,10 @@ mypath = "./data/output/"
 
 
 mode = "test"
-# mode = "train"
+mode = "train"
 
 models = ["deep_1", "deep_2_rnn", "dtree_1", "dtree_2_multioutput"]
-labels = ["dense", "RNN", "dtree", "randomforest"]
+labels = ["Dense", "RNN", "DT", "RF"]
 
 
 def list_files():
@@ -168,27 +168,27 @@ graph.save_figure(fig, "./figs/eval_accuracy_comp_mean_combined_" + mode)
 
 # quit()
 
-# keys_comp = ["dt"]
-# print("create barseries")
-# tss1 = create_barseries_avg_accuracy_for_model_interlaced(
-#     acc, keys_comp, labels)
-# keys_comp = ["fsize"]
-# tss2 = create_barseries_avg_accuracy_for_model_interlaced(
-#     acc, keys_comp, labels)
-# print("plotting chart")
+keys_comp = ["dt"]
+print("create barseries")
+tss1 = create_barseries_avg_accuracy_for_model_interlaced(
+    acc, keys_comp, labels)
+keys_comp = ["fsize"]
+tss2 = create_barseries_avg_accuracy_for_model_interlaced(
+    acc, keys_comp, labels)
+print("plotting chart")
 
-# fig = graph.plot_barchart_multi_dual(
-#     tss1, tss2, "model", "training time (s)", "size on disk (kB)", "Model computation", labels, True, True)
+fig = graph.plot_barchart_multi_dual(
+    tss1, tss2, "model", "training time (s)", "size on disk (kB)", "Model computation", labels, True, True)
 
-# graph.save_figure(fig, "./figs/eval_accuracy_comp_mean_combined_aux_" + mode)
+graph.save_figure(fig, "./figs/eval_accuracy_comp_mean_combined_aux_" + mode)
 
-# quit()
+quit()
 
 print("create barseries")
 tss = create_barseries(acc, labels, keys_comp[0])
 print("plotting chart")
 fig = graph.plot_barchart_multi(tss, "model", "accuracy [%]", "Average model accuracy (" + mode + ")", [
-                                "1-N-80%", "1-N-1-80%", "1-N-1-50%", "GRAY-80%"], False)
+                                "1-N-80", "1-N-1-80", "1-N-1-50", "GRAY-80"], False)
 graph.save_figure(fig, "./figs/eval_accuracy_comp_mean_" + mode)
 
 print("\n\n")
@@ -205,7 +205,7 @@ keys_comp = ["avg", "top"]
 
 tss = create_barseries(acc, labels, keys_comp[1])
 fig = graph.plot_barchart_multi(tss, "model", "accuracy [%]", "Best model accuracy (" + mode + ")", [
-                                "1-N-80%", "1-N-1-80%", "1-N-1-50%", "GRAY-80%"], False)
+                                "1-N-80", "1-N-1-80", "1-N-1-50", "GRAY-80"], False)
 graph.save_figure(fig, "./figs/eval_accuracy_comp_best_" + mode)
 
 print("\n\n")

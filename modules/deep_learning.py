@@ -166,7 +166,10 @@ def create_model(X, y):
     # model.add(Dense(output_dim, activation='softmax'))
 
     # https://towardsdatascience.com/activation-functions-neural-networks-1cbd9f8d91d6
-    model.compile(loss='binary_crossentropy',
+    # model.compile(loss='binary_crossentropy',
+    #               optimizer='adam', metrics=['accuracy'])
+
+    model.compile(loss='categorical_crossentropy',
                   optimizer='adam', metrics=['accuracy'])
 
     # It is recommended that the output layer has one node for the target variable and the linear activation function is used.
@@ -209,12 +212,12 @@ def train_model_RNN(model, X_train, y_train, X_orig):
 def train_model(model, X, y):
 
     # set early stopping monitor so the model stops training when it won't improve anymore
-    early_stopping_monitor = EarlyStopping(patience=10)
+    early_stopping_monitor = EarlyStopping(patience=20)
 
     # fit the keras model on the dataset
     # model.fit(X, y, epochs=150, batch_size=10, verbose=1)
     h = model.fit(X, y, validation_split=0.2, epochs=epochs,
-                  batch_size=batch_size, verbose=0, callbacks=[early_stopping_monitor])
+                  batch_size=batch_size, verbose=1, callbacks=[early_stopping_monitor])
 
     accuracy = eval_model_acc(model, X, y)
     print("\ntrain model accuracy: " + str(accuracy * 100) + "\n")

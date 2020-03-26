@@ -24,6 +24,8 @@ input_file = config["input_file"]
 filenames = config["filenames"]
 bookmarks = config["bookmarks"]
 
+# filenames = ["exp_39"]
+
 n_reps = 1
 use_saved_model = False
 append_timestamp = True

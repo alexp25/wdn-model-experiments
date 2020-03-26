@@ -16,7 +16,7 @@ with open("config.yml", "r") as f:
 
 root_crt_model_folder = config["root_crt_model_folder"]
 
-use_rnn = True
+use_rnn = False
 top_only = True
 
 if config["load_from_container"]:

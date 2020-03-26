@@ -38,9 +38,9 @@ custom_output = False
 # model_filenames = ["exp_39"]
 
 
-root_data_folder += "/control/2"
-filenames = ["exp_217"]
-model_filenames = ["exp_217"]
+# root_data_folder += "/control/2"
+# filenames = ["exp_217"]
+# model_filenames = ["exp_217"]
 
 
 # set this as in saved models folder
@@ -49,7 +49,7 @@ n_reps = 5
 results_vect_train = []
 results_vect_test = []
 
-use_rnn = True
+use_rnn = False
 
 output_filename = "eval_deep_1_"
 if use_rnn:
