@@ -90,7 +90,7 @@ for filename in filenames:
                 if use_saved_model:
                     model = deep_learning.dl_load_model(model_file)
                 else:
-                    model = deep_learning.create_model(x_train, y_train)
+                    model = deep_learning.create_model(x_train, y_train, config["activation_fn"], config["loss_fn"])
                     deep_learning.dl_save_model(model, model_file)
                     acc_train = deep_learning.eval_model_acc(
                         model, x_train, y_train)

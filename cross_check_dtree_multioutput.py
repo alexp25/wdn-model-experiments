@@ -76,7 +76,9 @@ for (j, filename) in enumerate(filenames):
     y = loader.binarize(y)
 
     if config["one_hot_encoding"]:
+        # y = prep.encode(prep.adapt_input(y))
         y = prep.encode(prep.adapt_input(y))
+        y = prep.decode_int_onehot(y)
 
     expname = data_file.split("exp_")[1].split(".csv")[0]
 

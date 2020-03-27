@@ -41,17 +41,16 @@ def create_decision_tree():
 
 def create_multi_output_classifier(use_randomforest):
     if use_randomforest:
-        model = MultiOutputClassifier(RandomForestClassifier())
+        # model = MultiOutputClassifier(RandomForestClassifier())
+        model = RandomForestClassifier()
     else:
-        model = MultiOutputClassifier(DecisionTreeClassifier())
-   
-    # model = RandomForestRegressor(max_depth=4, random_state=2)
+        # model = MultiOutputClassifier(DecisionTreeClassifier())
+        model = DecisionTreeClassifier()
     
     return model
 
 
 def train_decision_tree(model, X_train, y_train):
-
     model.fit(X_train, y_train)
 
     # check training accuracy

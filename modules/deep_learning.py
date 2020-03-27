@@ -2,16 +2,17 @@
 # from numpy import genfromtxt
 import numpy as np
 from keras.models import Sequential, load_model
-from keras.layers import Dense, SimpleRNN, LSTM
+from keras.layers import Dense, SimpleRNN, LSTM, Dropout
 from sklearn.neural_network import MLPRegressor
 from keras.callbacks import EarlyStopping
+from keras.optimizers import SGD
 
 epochs = 500
 epochs_RNN = 5
 batch_size = 10
 
 
-def reshape_RNN1(X):
+def reshape_RNN(X):
     print("reshape RNN")
     sizex = np.shape(X)
 
@@ -31,95 +32,41 @@ def reshape_RNN1(X):
     return X_train, batch_size, time_step, data_dim
 
 
-def reshape_RNN(X, y):
-
-    X_train, batch_size, time_step, data_dim = reshape_RNN1(X)
-    y_train, _, _, output_dim = reshape_RNN1(y)
+def reshape_RNN_dual(X, y):
+    X_train, batch_size, time_step, data_dim = reshape_RNN(X)
+    y_train, _, _, output_dim = reshape_RNN(y)
 
     return X_train, y_train, time_step, data_dim, output_dim
 
 
-def create_model_RNN(X, y):
-
+def create_model_RNN(X, y, activation_fn, loss_fn):
     # https://stackoverflow.com/questions/48978609/valueerror-error-when-checking-input-expected-lstm-1-input-to-have-3-dimension
     # Shape of input and output arrays for an LSTM layer should be (batch_size, time_step, dim).
-
-    # X = np.array([[1, 2, 3], [4, 5, 6]])
-    # y = np.array([[2, 4, 6], [8, 10, 12]])
-
-    # X = X.reshape(1,2,3)
-    # y = y.reshape(1,2,3)
-
-    # data_dim = 3
-    # timesteps = 2
-
-    # model = Sequential()
-    # model.add(LSTM(32, return_sequences=True, input_shape=(timesteps, data_dim)))
-    # model.add(LSTM(32, return_sequences=True))
-    # model.add(Dense(3, activation='linear'))
-
-    # print(model.summary())
-
-    # model.compile(loss='mean_squared_error', optimizer='rmsprop', metrics=['accuracy'])
-
-    # model.fit(X,y, batch_size=1, epochs=1000)
-
-    # define the keras model
-
-    X_train, y_train, time_step, data_dim, output_dim = reshape_RNN(X, y)
-
-    # model = Sequential()
+    X_train, y_train, time_step, data_dim, output_dim = reshape_RNN_dual(X, y)
 
     model = Sequential()
     model.add(LSTM(32, return_sequences=True,
                    input_shape=(time_step, data_dim)))
     model.add(LSTM(32, return_sequences=True))
-    # model.add(Dense(output_dim, activation='linear'))
-    model.add(Dense(output_dim, activation='sigmoid'))
+    model.add(LSTM(32, return_sequences=True))
+    model.add(Dense(output_dim, activation=activation_fn))
 
-    # model.add(SimpleRNN(units=output_dim, input_shape=sizex))
-    # model.add(Dense(24, input_dim=input_dim, activation='relu'))
+    # Binary classification: two exclusive classes, use binary cross entropy
+    # Multi-class classification: more than two exclusive classes, use categorical cross entropy
+    # Multi-label classification: just non-exclusive classes, use binary cross entropy
 
-    # Recurrent layer
-    # model.add(LSTM(64, return_sequences=False,
-    #             dropout=0.1, recurrent_dropout=0.1))
-
-    # Fully connected layer
-    # model.add(Dense(64, activation='relu'))
-
-    # model.add(Dense(1))
-    # model.add(Dense(output_dim, activation='sigmoid'))
-    # model.compile(loss='mean_squared_error', optimizer='adam')
-
-    # model.compile(loss='binary_crossentropy',
-    #               optimizer='adam', metrics=['accuracy'])
-
-
-    # There are three kinds of classification tasks:
-
-    # Binary classification: two exclusive classes
-    # Multi-class classification: more than two exclusive classes
-    # Multi-label classification: just non-exclusive classes
-    # Here, we can say
-
-    # In the case of (1), you need to use binary cross entropy.
-    # In the case of (2), you need to use categorical cross entropy.
-    # In the case of (3), you need to use binary cross entropy.
-
-    model.compile(loss='categorical_crossentropy',
-                optimizer='adam',
-                metrics=['accuracy'])
+    model.compile(loss=loss_fn,
+                  optimizer='adam',
+                  metrics=['accuracy'])
 
     model.summary()
-
-    # model.fit(X_train, y_train, epochs=20, batch_size=1)
 
     train_model_RNN(model, X_train, y_train, X)
 
     return model
 
 
-def create_model(X, y):
+def create_model(X, y, activation_fn, loss_fn):
     # define the keras model
 
     sizex = np.shape(X)
@@ -129,59 +76,36 @@ def create_model(X, y):
     output_dim = sizey[1]
 
     model = Sequential()
-    # model.add(Dense(12, input_dim=input_dim, activation='relu'))
-    # model.add(Dense(8, activation='relu'))
 
-    # We use the 'add()' function to add layers to our model. We will add two layers and an output layer.
-    # 'Dense' is the layer type. Dense is a standard layer type that works for most cases.
-    # In a dense layer, all nodes in the previous layer connect to the nodes in the current layer.
+    # ReLU is used usually for hidden layers. it avoids vanishing gradient problem.
+    # Try this. For output layer, softmax to get probabilities for possible outputs.
 
-    # model.add(Dense(12, input_dim=input_dim, activation='relu'))
-    # model.add(Dense(8, activation='relu'))
+    print("input dim: ", sizex)
+    print("output dim: ", sizey)
 
-    # model.add(Dense(12, input_dim=input_dim, activation='sigmoid'))
-    # model.add(Dense(8, activation='sigmoid'))
+    hsize = 32
 
-    # ReLU is used usually for hidden layers. it avoids vanishing gradient problem. Try this. For output layer, softmax to get probabilities for possible outputs.
-    model.add(Dense(24, input_dim=input_dim, activation='relu'))
-    model.add(Dense(16, activation='relu'))
+    model.add(Dense(hsize, input_dim=input_dim, activation='relu'))
 
-    # Regression Loss Functions
-    #     Mean Squared Error Loss
-    #     Mean Squared Logarithmic Error Loss
-    #     Mean Absolute Error Loss
-    # Binary Classification Loss Functions
-    #     Binary Cross-Entropy
-    #     Hinge Loss
-    #     Squared Hinge Loss
-    # Multi-Class Classification Loss Functions
-    #     Multi-Class Cross-Entropy Loss
-    #     Sparse Multiclass Cross-Entropy Loss
-    #     Kullback Leibler Divergence Loss
+    # add dropout to hidden layers to prevent overfitting
+    model.add(Dropout(0.5))
+    model.add(Dense(hsize, activation='relu'))
+    model.add(Dropout(0.5))
+    model.add(Dense(hsize, activation='relu'))
+    model.add(Dropout(0.5))
 
-    # compile the keras model
-
-    # model.add(Dense(output_dim, activation='sigmoid'))
-    model.add(Dense(output_dim, activation='sigmoid'))
-    # model.add(Dense(output_dim, activation='softmax'))
+    model.add(Dense(output_dim, activation=activation_fn))
 
     # https://towardsdatascience.com/activation-functions-neural-networks-1cbd9f8d91d6
-    # model.compile(loss='binary_crossentropy',
-    #               optimizer='adam', metrics=['accuracy'])
 
-    model.compile(loss='categorical_crossentropy',
-                  optimizer='adam', metrics=['accuracy'])
+    sgd = SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
+    # loss_fn = "binary_crossentropy"
 
-    # It is recommended that the output layer has one node for the target variable and the linear activation function is used.
+    optimizer = 'adam'
+    # optimizer = 'sgd'
 
-    # model.add(Dense(output_dim, activation='linear'))
-    #
-    # model.compile(loss='mean_squared_logarithmic_error',
-    #               optimizer='adam', metrics=['accuracy'])
-
-    # model.add(Dense(output_dim, activation='softmax'))
-    # model.compile(loss='categorical_crossentropy',
-    #               optimizer='adam', metrics=['accuracy'])
+    model.compile(loss=loss_fn,
+                  optimizer=optimizer, metrics=['accuracy'])
 
     model.summary()
 
@@ -201,7 +125,7 @@ def train_model_RNN(model, X_train, y_train, X_orig):
 
     accuracy = eval_model_acc_RNN(model, X_train, y_train)
     print("\ntrain model accuracy: " + str(accuracy * 100) + "\n")
-    res = reshape_RNN1([X_orig[0]])[0]
+    res = reshape_RNN([X_orig[0]])[0]
     print(res)
     predictions = model.predict(res)
     print(predictions)
@@ -210,14 +134,23 @@ def train_model_RNN(model, X_train, y_train, X_orig):
 
 
 def train_model(model, X, y):
+    dim = np.shape(X)
+    dim = dim[0]
 
     # set early stopping monitor so the model stops training when it won't improve anymore
-    early_stopping_monitor = EarlyStopping(patience=20)
+    early_stopping_monitor = EarlyStopping(patience=50)
 
     # fit the keras model on the dataset
-    # model.fit(X, y, epochs=150, batch_size=10, verbose=1)
+    # h = model.fit(X, y, epochs=epochs, batch_size=1, verbose=1)
+
     h = model.fit(X, y, validation_split=0.2, epochs=epochs,
                   batch_size=batch_size, verbose=1, callbacks=[early_stopping_monitor])
+
+    # h = model.fit(X, y, validation_split=0.2, epochs=epochs,
+    #               batch_size=dim, verbose=1, callbacks=[early_stopping_monitor])
+
+    # h = model.fit(X, y, epochs=epochs,
+    #               batch_size=dim, verbose=1, callbacks=[early_stopping_monitor])
 
     accuracy = eval_model_acc(model, X, y)
     print("\ntrain model accuracy: " + str(accuracy * 100) + "\n")
@@ -233,7 +166,7 @@ def eval_write_info(model, X, y, model_file, dt, fsize):
 
 
 def eval_write_info_RNN(model, X, y, model_file, dt, fsize):
-    res = reshape_RNN(X, y)
+    res = reshape_RNN_dual(X, y)
     X = res[0]
     y = res[1]
     accuracy = eval_model_acc_RNN(model, X, y)
@@ -266,7 +199,7 @@ def write_info(model_file, accuracy, dt, fsize):
 
 
 def dl_save_model(model, model_file):
-     # Save the model
+        # Save the model
     model.save(model_file)
 
 
@@ -304,14 +237,16 @@ def eval_model(model, X, y, ndata, use_rnn):
 
     return accuracy
 
+
 def predict_model_RNN(model, X):
-    XR = reshape_RNN1(X)[0]
+    XR = reshape_RNN(X)[0]
     # make probability predictions with the model
     predictions = model.predict(XR)
     return predictions
 
+
 def eval_model_RNN(model, X, y, ndata):
-    res = reshape_RNN(X, y)
+    res = reshape_RNN_dual(X, y)
     X = res[0]
     y = res[1]
 
@@ -320,6 +255,7 @@ def eval_model_RNN(model, X, y, ndata):
     print('Accuracy: %.2f' % (accuracy*100))
 
     return accuracy
+
 
 def binarize_predictions_mean(x):
     s = np.shape(x)
@@ -333,8 +269,9 @@ def binarize_predictions_mean(x):
                 x[i, j] = 1
             else:
                 x[i, j] = 0
-                
+
     return x
+
 
 def binarize_predictions_max(x):
     s = np.shape(x)
@@ -348,8 +285,9 @@ def binarize_predictions_max(x):
                 x[i, j] = 1
             else:
                 x[i, j] = 0
-                
+
     return x
+
 
 def binarize_predictions_1(x, threshold):
     s = np.shape(x)
@@ -362,8 +300,9 @@ def binarize_predictions_1(x, threshold):
                 x[i, j] = 1
             else:
                 x[i, j] = 0
-                
+
     return x
+
 
 def binarize_predictions(x, low, high):
     s = np.shape(x)

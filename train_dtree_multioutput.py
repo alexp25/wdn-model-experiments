@@ -96,7 +96,13 @@ for filename in filenames:
     # binarize the outputs
     y = loader.binarize(y)
     if config["one_hot_encoding"]:
+        # use integer encoding
         y = prep.encode(prep.adapt_input(y))
+        y = prep.decode_int_onehot(y)
+
+        # print(y)
+        # quit()
+        # y = prep.encode(prep.adapt_input(y))
 
     top_acc = 0
     top_model_filename = None
@@ -282,6 +288,6 @@ with open("./data/output/eval_" + output_filename + "_test.csv", "w") as f:
 tss = create_barseries([acc_train_vect, acc_test_vect], ["train", "test"])
 
 fig = graph.plot_barchart_multi(tss, "model", "accuracy", "Average accuracy (decision tree)", [
-                                "1-N-80%", "1-N-1-80%", "1-N-1-50%", "GRAY-80%"], False)
+                                "1-N-80%", "1-N-1-80%", "1-N-1-50%", "GRAY-80%"], [70, 120])
 
 graph.save_figure(fig, "./figs/mean_accuracy_" + output_filename)

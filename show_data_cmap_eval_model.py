@@ -101,10 +101,10 @@ if use_random_exp:
     input_file = "./data/random1/exp_179.csv"
     # input_file = "./data/control/2/exp_217.csv"
     if use_matching_random_model:
-        model_file = root_crt_model_folder + "/" + "exp_179_4_top.h5"
+        model_file = root_crt_model_folder + "/" + "exp_179_1_top.h5"
         # model_file = root_crt_model_folder + "/" + "exp_217_2_top.h5"
     else:
-        model_file = root_crt_model_folder + "/" + "exp_39_5_top.h5"
+        model_file = root_crt_model_folder + "/" + "exp_39_4_top.h5"
 else:
     input_file = "./data/exp_39.csv"
     model_file = root_crt_model_folder + "/" + "exp_39_5_top.h5"
@@ -435,12 +435,15 @@ if use_post_rowskip:
             avg_rows: List[int] = []
             for col in range(nvalves):
                 avg_rows.append(0)
+                
                 for r in range(nrowskip_crt):
                     val = intersection_matrix_buffer[r][col]
                     # print(val)
                     avg_rows[col] += val
                     intersection_matrix_buffer[r][col] = 0
+
                 avg_rows[col] /= nrowskip_crt
+
             avg_rows_list.append(avg_rows)
             print(avg_rows)
 

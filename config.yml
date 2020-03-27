@@ -20,6 +20,9 @@ bookmarks: [188, 282, 375, 469, 563, 657]
 
 train_percent: 80
 
+activation_fn: "softmax"
+loss_fn: "categorical_crossentropy"
+
 n_valves: 6
 
 run_clean: True

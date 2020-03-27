@@ -21,7 +21,7 @@ rowsdict = {}
 colsdict = {}
 
 mode = "deep_1"
-# mode = "deep_2_rnn"
+mode = "deep_2_rnn"
 # mode = "dtree_1"
 # mode = "dtree_2_multioutput"
 
@@ -86,5 +86,5 @@ print(avg)
 # quit()
 
 fig = graph.plot_matrix_cmap(elements, len(rowsdict), len(
-    colsdict), "Model accuracy cross-validation (" + mode2 + ")", "dataset", "model", xlabels, ylabels, (90, 100))
+    colsdict), "Model accuracy cross-validation (" + mode2 + ")", "dataset", "model", xlabels, ylabels, (70, 100))
 graph.save_figure(fig, "./figs/accuracy_cross_check_" + mode + "_" + mode2)

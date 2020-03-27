@@ -31,8 +31,12 @@ bookmarks = config["bookmarks"]
 # root_data_folder += "/random1"
 # filenames = ["exp_179"]
 
+# filenames = ["exp_39"]
+
 # root_data_folder += "/control/2"
 # filenames = ["exp_217"]
+
+# filenames = [filenames[len(filenames)-1]]
 
 n_reps = 5
 append_timestamp = False
@@ -122,7 +126,7 @@ for filename in filenames:
 
             if use_rnn:
                 tstart = time.time()
-                model = deep_learning.create_model_RNN(x_train, y_train)
+                model = deep_learning.create_model_RNN(x_train, y_train, config["activation_fn"], config["loss_fn"])
                 dt = time.time() - tstart
 
                 deep_learning.dl_save_model(model, model_file)
@@ -136,7 +140,7 @@ for filename in filenames:
                     model, x_eval, y_eval, sizex[1])
             else:
                 tstart = time.time()
-                model = deep_learning.create_model(x_train, y_train)
+                model = deep_learning.create_model(x_train, y_train, config["activation_fn"], config["loss_fn"])
                 dt = time.time() - tstart
 
                 deep_learning.dl_save_model(model, model_file)

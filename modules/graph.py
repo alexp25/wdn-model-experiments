@@ -225,29 +225,33 @@ def set_disp(title, xlabel, ylabel):
 
 # plt.savefig('images/two-scales-5.png')
 
-def plot_barchart_multi(bss: List[Barseries], xlabel, ylabel, title, xlabels, top):
-    return plot_barchart_multi_core(bss, xlabel, ylabel, title, xlabels, top, None, None, True, None, 0, None)[0]
+def plot_barchart_multi(bss: List[Barseries], xlabel, ylabel, title, xlabels, limits):
+    return plot_barchart_multi_core(bss, xlabel, ylabel, title, xlabels, limits, None, None, True, None, 0, None)[0]
     # 0.155
     # return plot_barchart_multi_core(bss, xlabel, ylabel, title, xlabels, top, None, None, True, -0.125, 0, None)[0]
 
 
-def plot_barchart_multi_dual(bss1: List[Barseries], bss2: List[Barseries], xlabel, ylabel1, ylabel2, title, xlabels, top, show):
+def plot_barchart_multi_dual(bss1: List[Barseries], bss2: List[Barseries], xlabel, ylabel1, ylabel2, title, xlabels, limits: List[List[int]], show):
     fig = plt.figure()
     ax1 = fig.add_subplot(111)
+
+    if limits is None:
+        limits = [None, None]
+
     fig, ax1 = plot_barchart_multi_core(
-        bss1, xlabel, ylabel1, title, xlabels, top, fig, ax1, False, -0.155, 2, "upper left")
+        bss1, xlabel, ylabel1, title, xlabels, limits[0], fig, ax1, False, -0.155, 2, "upper left")
 
     for b in bss2:
         b.color = "red"
 
     ax2 = ax1.twinx()
     fig, _ = plot_barchart_multi_core(
-        bss2, xlabel, ylabel2, title, xlabels, top, fig, ax2, True, 0.155, 2, "upper right")
+        bss2, xlabel, ylabel2, title, xlabels, limits[1], fig, ax2, True, 0.155, 2, "upper right")
 
     return fig
 
 
-def plot_barchart_multi_core(bss: List[Barseries], xlabel, ylabel, title, xlabels, top, fig, ax, show, offset, bcount, legend_loc):
+def plot_barchart_multi_core(bss: List[Barseries], xlabel, ylabel, title, xlabels, limits: List[int], fig, ax, show, offset, bcount, legend_loc):
 
     # create plot
     if fig is None or ax is None:
@@ -327,21 +331,22 @@ def plot_barchart_multi_core(bss: List[Barseries], xlabel, ylabel, title, xlabel
 
     ax.grid(zorder=0)
 
-    print(low)
-    print(high)
+    print("low limit: ", low)
+    print("high limit: ", high)
     # plt.ylim([math.ceil(low-0.5*(high-low)), math.ceil(high+0.5*(high-low))])
     # plt.ylim([math.ceil(low-0.005*(high-low)), math.ceil(high+0.005*(high-low))])
     # plt.ylim([low, high])
 
-    kscale = 0.01
+   
     # kscale = 0.25
+    kscale = 0.01
 
-    if not top:
-        high = 100
+    if limits is not None:
+        low = limits[0]
+        high = limits[1]
     else:
-        high += kscale*high
-
-    low -= kscale*low
+        high += kscale * high
+        low -= kscale * low
 
     plt.ylim([low, high])
 
@@ -474,8 +479,8 @@ def heatmap(data, row_labels, col_labels, ax=None,
     ax.set_xticks(np.arange(data.shape[1]+1)-.5, minor=True)
     ax.set_yticks(np.arange(data.shape[0]+1)-.5, minor=True)
 
-    # ax.grid(which="minor", color="w", linestyle='-', linewidth=3)
-    ax.grid(which="minor", color="w", linestyle='-', linewidth=0)
+    ax.grid(which="minor", color="w", linestyle='-', linewidth=3)
+    # ax.grid(which="minor", color="w", linestyle='-', linewidth=0)
     ax.tick_params(which="minor", bottom=False, left=False)
 
     return im, cbar
@@ -561,8 +566,12 @@ def plot_matrix_cmap(elements: List[CMapMatrixElement], xsize, ysize, title, xla
     ax.tick_params(axis='both', which='major', labelsize=FSIZE_LABEL_XS)
     ax.tick_params(axis='both', which='minor', labelsize=FSIZE_LABEL_XS)
 
+    cmap = "RdYlGn"
+    cmap = "viridis"
+    cmap = "YlGnBu"
+
     im, cbar = heatmap(intersection_matrix, xlabels, ylabels, ax=ax,
-                       cmap="RdYlGn", cbarlabel="", scale=scale)
+                       cmap=cmap, cbarlabel="", scale=scale)
 
     # texts = annotate_heatmap(im, valfmt="{x:.1f} t")
 
@@ -593,7 +602,7 @@ def plot_matrix_cmap_plain(elements: List[CMapMatrixElement], xsize, ysize, titl
 
     for e in elements:
         intersection_matrix[e.i][e.j] = e.val
-        print(e.val)
+        # print(e.val)
         if e.val < min_val:
             min_val = e.val
         if e.val > max_val:

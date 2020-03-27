@@ -71,7 +71,7 @@ for (i, r) in enumerate(range(n_reps)):
                 x, y, train_percent)
 
             if model is None:
-                model = deep_learning.create_model(x_train, y_train)
+                model = deep_learning.create_model(x_train, y_train, config["activation_fn"], config["loss_fn"])
 
             deep_learning.train_model(model, x_train, y_train)
             deep_learning.dl_save_model(model, model_filename_incremental)

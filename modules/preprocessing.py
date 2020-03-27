@@ -53,12 +53,12 @@ class Preprocessing:
         cols = s[1]
         cols_data = cols
         cols_decoded = int(math.log(cols_data, 2))
-        print("decode > encoded shape: ", rows, cols)
+        # print("decode > encoded shape: ", rows, cols)
         decoded = self.encoder.inverse_transform(data)
         s = np.shape(decoded)
         rows = s[0]
         cols = s[1]
-        print("decode > decoded shape: ", rows, cols)
+        # print("decode > decoded shape: ", rows, cols)
         i = 0
         for r in range(rows):
             if decoded[r][0] is None:
@@ -66,7 +66,7 @@ class Preprocessing:
                 # print(decoded[r])
             else:
                 if i == 0:
-                    print(decoded[r])
+                    # print(decoded[r])
                     i += 1
                 # np.zeros((cols,), dtype=int)
                 # print("decoded unknown: ", decoded[r])
@@ -104,13 +104,13 @@ class Preprocessing:
         for b in data:
             # self.adapt_input_core(b)
             # b = b[0]
-            print("data: ", b)
+            # print("data: ", b)
             s = len(b)
-            print("shape: ", s)
+            # print("shape: ", s)
             decoded_binary = self.decode([b])[0]
-            print("decoded binary: ", decoded_binary)
+            # print("decoded binary: ", decoded_binary)
             int_b = self.binary_to_int(decoded_binary[0])
-            print("decoded int: ", int_b)
+            # print("decoded int: ", int_b)
             ints.append(int_b)
         return ints
 

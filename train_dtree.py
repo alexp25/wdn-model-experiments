@@ -224,6 +224,6 @@ with open("./data/output/eval_dtree_1_test.csv", "w") as f:
 tss = create_barseries([acc_train_vect, acc_test_vect], ["train", "test"])
 
 fig = graph.plot_barchart_multi(tss, "model", "accuracy", "Average accuracy (decision tree)", [
-                                "1-N-80%", "1-N-1-80%", "1-N-1-50%", "GRAY-80%"], False)
+                                "1-N-80%", "1-N-1-80%", "1-N-1-50%", "GRAY-80%"], [70, 120])
 
 graph.save_figure(fig, "./figs/mean_accuracy_dtree_1")

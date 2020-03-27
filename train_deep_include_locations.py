@@ -119,7 +119,7 @@ for filename in filenames:
         graph = tf.Graph()
         with tf.Session(graph=graph):
 
-            model = deep_learning.create_model(x_train, y_train)
+            model = deep_learning.create_model(x_train, y_train, config["activation_fn"], config["loss_fn"])
             deep_learning.dl_save_model(model, model_file)
             deep_learning.eval_write_info(
                 model, x_eval, y_eval, model_file, 0, 0)

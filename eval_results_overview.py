@@ -21,23 +21,18 @@ mypath = "./data/output/"
 
 
 mode = "test"
-mode = "train"
+# mode = "train"
 
 models = ["deep_1", "deep_2_rnn", "dtree_1", "dtree_2_multioutput"]
 labels = ["Dense", "RNN", "DT", "RF"]
 
+show_model_computation = False
 
-def list_files():
 
+def list_files(mode):
     onlyfiles = [f for f in listdir(mypath) if isfile(
         join(mypath, f)) and '.csv' in f and "eval_" in f and "_" + mode in f]
-
     return onlyfiles
-
-
-files = list_files()
-
-print(files)
 
 
 def read_results(sorted_files):
@@ -63,11 +58,32 @@ def read_results(sorted_files):
                         d_obj["fsize"] = float(d[4])/1024
 
                     data2.append(d_obj)
-            acc[exp] = data2
+            if len(data2) > 0:
+                acc[exp] = data2
     return acc
 
 
-acc = read_results(files)
+if show_model_computation:
+    files_train = list_files("train")
+    acc_train = read_results(files_train)
+    files_test = list_files("test")
+    acc_test = read_results(files_test)
+
+    for a in acc_train:
+        for i, exp in enumerate(acc_train[a]):
+            atrain = exp
+            atest = acc_test[a.replace("_train", "_test")][i]
+            atest["dt"] = atrain["dt"]
+
+    # print(acc_train)
+    # quit()
+
+    # add train data (file size)
+    acc = acc_test
+else:
+    files = list_files(mode)
+    print(files)
+    acc = read_results(files)
 
 print(acc)
 
@@ -156,39 +172,42 @@ report = ""
 
 keys_comp = ["avg", "top"]
 
+limits = [80, 100]
+
 print("create barseries")
 tss = create_barseries_avg_accuracy_for_model_interlaced(
     acc, keys_comp, labels)
 print("plotting chart")
 
 fig = graph.plot_barchart_multi(
-    tss, "model", "accuracy [%]", "Average model accuracy (" + mode + ")", labels, True)
+    tss, "model", "accuracy [%]", "Average model accuracy (" + mode + ")", labels, limits)
 
 graph.save_figure(fig, "./figs/eval_accuracy_comp_mean_combined_" + mode)
 
-# quit()
 
-keys_comp = ["dt"]
-print("create barseries")
-tss1 = create_barseries_avg_accuracy_for_model_interlaced(
-    acc, keys_comp, labels)
-keys_comp = ["fsize"]
-tss2 = create_barseries_avg_accuracy_for_model_interlaced(
-    acc, keys_comp, labels)
-print("plotting chart")
+if show_model_computation:
+    keys_comp = ["dt"]
+    print("create barseries")
+    tss1 = create_barseries_avg_accuracy_for_model_interlaced(
+        acc, keys_comp, labels)
+    keys_comp = ["fsize"]
+    tss2 = create_barseries_avg_accuracy_for_model_interlaced(
+        acc, keys_comp, labels)
+    print("plotting chart")
 
-fig = graph.plot_barchart_multi_dual(
-    tss1, tss2, "model", "training time (s)", "size on disk (kB)", "Model computation", labels, True, True)
+    fig = graph.plot_barchart_multi_dual(
+        tss1, tss2, "model", "training time (s)", "size on disk (kB)", "Model computation", labels, [None, None], True)
 
-graph.save_figure(fig, "./figs/eval_accuracy_comp_mean_combined_aux_" + mode)
+    graph.save_figure(
+        fig, "./figs/eval_accuracy_comp_mean_combined_aux_" + mode)
 
-quit()
+    quit()
 
 print("create barseries")
 tss = create_barseries(acc, labels, keys_comp[0])
 print("plotting chart")
 fig = graph.plot_barchart_multi(tss, "model", "accuracy [%]", "Average model accuracy (" + mode + ")", [
-                                "1-N-80", "1-N-1-80", "1-N-1-50", "GRAY-80"], False)
+                                "1-N-80", "1-N-1-80", "1-N-1-50", "GRAY-80"], limits)
 graph.save_figure(fig, "./figs/eval_accuracy_comp_mean_" + mode)
 
 print("\n\n")
@@ -205,7 +224,7 @@ keys_comp = ["avg", "top"]
 
 tss = create_barseries(acc, labels, keys_comp[1])
 fig = graph.plot_barchart_multi(tss, "model", "accuracy [%]", "Best model accuracy (" + mode + ")", [
-                                "1-N-80", "1-N-1-80", "1-N-1-50", "GRAY-80"], False)
+                                "1-N-80", "1-N-1-80", "1-N-1-50", "GRAY-80"], limits)
 graph.save_figure(fig, "./figs/eval_accuracy_comp_best_" + mode)
 
 print("\n\n")

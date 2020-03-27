@@ -15,9 +15,9 @@ import yaml
 def get_intersection_matrix(elements: List[CMapMatrixElement], rows, cols):
     intersection_matrix = np.zeros((rows, cols))
     print(rows, cols)
-    print("check elems")
+    # print("check elems")
     for e in elements:
-        print(e.i, e.j)
+        # print(e.i, e.j)
         intersection_matrix[e.j][e.i] = e.val
 
     return intersection_matrix
@@ -51,6 +51,8 @@ with open("elem2.dat", "rb") as f:
 
 n_bins = len(elements_combined)
 rowskip = 1
+
+print([e.val for e in elements_combined])
 
 imatrix = get_intersection_matrix(elements_combined, n_bins, 1)
 print(imatrix)

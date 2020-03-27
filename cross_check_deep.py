@@ -42,6 +42,7 @@ filenames = config["filenames"]
 
 
 use_rnn = True
+
 use_top = True
 
 if config["load_from_container"]:
