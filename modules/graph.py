@@ -8,6 +8,7 @@ from matplotlib.gridspec import GridSpec
 from typing import List
 import numpy as np
 import math
+import copy
 
 
 # FSIZE_TITLE = 16
@@ -589,7 +590,7 @@ def plot_matrix_cmap(elements: List[CMapMatrixElement], xsize, ysize, title, xla
     return fig
 
 
-def plot_matrix_cmap_plain(elements: List[CMapMatrixElement], xsize, ysize, title, xlabel, ylabel, xlabels, ylabels, scale=None):
+def plot_matrix_cmap_plain(elements: List[CMapMatrixElement], xsize, ysize, title, xlabel, ylabel, xlabels, ylabels, scale=None, figsize=None):
 
     min_val, max_val = elements[0].val, elements[0].val
 
@@ -600,7 +601,14 @@ def plot_matrix_cmap_plain(elements: List[CMapMatrixElement], xsize, ysize, titl
 
     # intersection_matrix = np.zeros((xsize, ysize + 2))
 
+    for row in range(xsize):
+        for col in range(ysize):
+            intersection_matrix[row][col] = -1
+
     for e in elements:
+        if e.val == 0:
+            e.val = -1
+
         intersection_matrix[e.i][e.j] = e.val
         # print(e.val)
         if e.val < min_val:
@@ -611,10 +619,24 @@ def plot_matrix_cmap_plain(elements: List[CMapMatrixElement], xsize, ysize, titl
     # intersection_matrix[0][ysize] = 0
     # intersection_matrix[0][ysize+1] = 1
 
-    fig, ax = plt.subplots()
+    if figsize is not None:
+        fig, ax = plt.subplots(figsize=figsize)
+    else:
+        fig, ax = plt.subplots()
+
+    cmap = "RdYlGn"
+    cmap = "viridis"
+    cmap = "YlGnBu"
+    cmap = "Blues"
+
+    palette = copy.copy(plt.get_cmap(cmap))
+    palette.set_under('white', -1)
+
+    ax.tick_params(axis='both', which='major', labelsize=FSIZE_LABEL_S)
+    ax.tick_params(axis='both', which='minor', labelsize=FSIZE_LABEL_S)
 
     im, cbar = heatmap(intersection_matrix, xlabels, ylabels, ax=ax,
-                       cmap="Blues", cbarlabel=None, scale=scale)
+                       cmap=palette, cbarlabel=None, scale=scale)
 
     set_disp(title, xlabel, ylabel)
 

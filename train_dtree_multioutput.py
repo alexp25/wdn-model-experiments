@@ -155,7 +155,7 @@ for filename in filenames:
         else:
             model = model_loader.load_sklearn_model(model_file)
 
-        model, acc, diff, total = classifiers.predict_decision_tree(
+        model, acc, diff, total, _ = classifiers.predict_decision_tree(
             model, x_train, y_train, False)
 
         # update training results
@@ -168,7 +168,7 @@ for filename in filenames:
                     diff, total, dt, 0, model_file)
 
         tstart = time.time()
-        model, acc, diff, total = classifiers.predict_decision_tree(
+        model, acc, diff, total, _ = classifiers.predict_decision_tree(
             model, x_test, y_test, False)
         dt_eval = time.time() - tstart
 
@@ -184,23 +184,6 @@ for filename in filenames:
             if save_best_model:
                 copy2(top_model_filename + ".skl",
                       top_model_filename + "_top.skl")
-
-
-# def set_avg(dc):
-#     # for each input file (experiment)
-#     for dc1 in dc:
-#         acc_vect = []
-#         for (rep, data) in enumerate(dc[dc1]["data"]):
-#             ds = dc[dc1]["data"][rep]
-#             dsc = dc[dc1]["aux"][rep]
-#             # the accuracy of the experiment is the average accuracy of each decision tree
-#             acc = ds / dsc * 100
-#             acc_vect.append(acc)
-
-#         acc_vect = np.array(acc_vect)
-#         dc[dc1]["avg"] = np.average(acc_vect)
-#         dc[dc1]["top"] = np.max(acc_vect)
-#         dc[dc1]["top_file"] = dc[dc1]["files"][0][np.argmax(acc_vect)]
 
 def set_avg(dc):
     # for each input file (experiment)

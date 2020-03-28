@@ -22,22 +22,15 @@ def get_intersection_matrix(elements: List[CMapMatrixElement], rows, cols):
 
     return intersection_matrix
 
-
-def plot_intersection_matrix_ax(elements, index, nrows, ncols, save, scale, fig, ax):
-    fig = graph.plot_matrix_cmap_plain_ax(
-        elements, nrows, ncols, "", "", "",  xlabels, ylabels, scale, fig, ax)
-    if save:
-        graph.save_figure(fig, "./figs/valve_sequence_random_prediction")
         
 def plot_intersection_matrix(elements, index, nrows, ncols, save, scale):
     fig = graph.plot_matrix_cmap_plain(
-        elements, nrows, ncols, "", "", "",  xlabels, ylabels, scale)
+        elements, nrows, ncols, "Sequence evaluation", "sample bins", "",  xlabels, ylabels, scale, (16,7))
     if save:
         graph.save_figure(fig, "./figs/valve_sequence_random_prediction")
 
 
 nvalves = 6
-
 
 with open("elem.dat", "rb") as f:
     elements_combined = pickle.load(f)
@@ -52,7 +45,11 @@ with open("elem2.dat", "rb") as f:
 n_bins = len(elements_combined)
 rowskip = 1
 
-print([e.val for e in elements_combined])
+vals = [e.val for e in elements_combined]
+print(vals)
+print("avg: ", np.mean(vals))
+
+# quit()
 
 imatrix = get_intersection_matrix(elements_combined, n_bins, 1)
 print(imatrix)
@@ -70,8 +67,8 @@ for e in elements_combined:
 xlabels = [("v" + str(i + 1)) for i in range(nvalves)]
 xlabels.append("  ")
 xlabels.append("p ")
-# ylabels = [("x" + str(i+1)) for i in range(n_bins)]
-ylabels = [(" ") for i in range(n_bins)]
+ylabels = [("" + str(i+1)) for i in range(n_bins)]
+# ylabels = [(" ") for i in range(n_bins)]
 
 plot_intersection_matrix(elements_all, 3, 8, n_bins, True, (0, 1))
-# print(get_intersection_matrix(elements_combined))
+

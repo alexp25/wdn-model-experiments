@@ -7,7 +7,7 @@ from modules import loader, model_loader
 from modules.preprocessing import Preprocessing
 from modules import generator
 
-import time
+import time 
 
 from os import listdir
 from os.path import isfile, join
@@ -109,12 +109,12 @@ for (j, filename) in enumerate(filenames):
         x_eval, y_eval = classifiers.split_dataset_test(
             x, y, train_percent)
 
-        model, acc, diff, total = classifiers.predict_decision_tree(
+        model, acc, diff, total, _ = classifiers.predict_decision_tree(
             model, x_train, y_train, False)
         diff_sum_train += diff
         total_sum_train += total
 
-        model, acc, diff, total = classifiers.predict_decision_tree(
+        model, acc, diff, total, _ = classifiers.predict_decision_tree(
             model, x_eval, y_eval, False)
         diff_sum_test += diff
         total_sum_test += total

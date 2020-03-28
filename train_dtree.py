@@ -130,7 +130,7 @@ for filename in filenames:
             else:
                 model = model_loader.load_sklearn_model(model_file)
 
-            model, acc, diff, total = classifiers.predict_decision_tree(
+            model, acc, diff, total, _ = classifiers.predict_decision_tree(
                 model, x_train, y_train, False)
 
             acc_train_vect[filename]["data"][rep].append(diff)
@@ -138,7 +138,7 @@ for filename in filenames:
             acc_train_vect[filename]["files"][rep].append(model_file)
             acc_train_vect[filename]["acc"].append(acc)
 
-            model, acc, diff, total = classifiers.predict_decision_tree(
+            model, acc, diff, total, _ = classifiers.predict_decision_tree(
                 model, x_test, y_test, False)
 
             model_loader.save_sklearn_model(model, model_file)

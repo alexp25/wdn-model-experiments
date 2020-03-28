@@ -26,8 +26,10 @@ mode = "test"
 models = ["deep_1", "deep_2_rnn", "dtree_1", "dtree_2_multioutput"]
 labels = ["Dense", "RNN", "DT", "RF"]
 
-show_model_computation = False
+# show model computation (only)
 
+# show_model_computation = False
+show_model_computation = True
 
 def list_files(mode):
     onlyfiles = [f for f in listdir(mypath) if isfile(
@@ -185,6 +187,14 @@ fig = graph.plot_barchart_multi(
 graph.save_figure(fig, "./figs/eval_accuracy_comp_mean_combined_" + mode)
 
 
+print("\n\n")
+print("combined accuracy results: ")
+r = [str(ts.data) for ts in tss]
+report += "combined accuracy results:\n"
+report += "\n".join(r) + "\n\n"
+print(r)
+print("\n\n")
+
 if show_model_computation:
     keys_comp = ["dt"]
     print("create barseries")
@@ -193,10 +203,23 @@ if show_model_computation:
     keys_comp = ["fsize"]
     tss2 = create_barseries_avg_accuracy_for_model_interlaced(
         acc, keys_comp, labels)
+
+    for i, ts in enumerate(tss2):
+        for j, d in enumerate(ts.data):
+            ts.data[j] /= 1024
+    
+    for i, ts in enumerate(tss1):
+        for j, d in enumerate(ts.data):
+            ts.data[j] /= 10
+           
     print("plotting chart")
+    r = [str(ts.data) for ts in tss1]
+    print(r)
+    r = [str(ts.data) for ts in tss2]
+    print(r)
 
     fig = graph.plot_barchart_multi_dual(
-        tss1, tss2, "model", "training time (s)", "size on disk (kB)", "Model computation", labels, [None, None], True)
+        tss1, tss2, "model", "training time [x10 s]", "size on disk [MB]", "Model computation", labels, [[0, 12], [0, 30]], True)
 
     graph.save_figure(
         fig, "./figs/eval_accuracy_comp_mean_combined_aux_" + mode)

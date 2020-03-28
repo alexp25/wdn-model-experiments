@@ -108,4 +108,4 @@ def predict_decision_tree(model, X_test, y_test, verbose):
         print(y_diff)
         print("accuracy: " + str(round(accuracy, 2)) + " %")
 
-    return model, accuracy, ndiff, len(y_diff)
+    return model, accuracy, ndiff, len(y_diff), y_predict

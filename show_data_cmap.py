@@ -75,5 +75,5 @@ for e in elements:
 print(intersection_matrix)
 
 fig = graph.plot_matrix_cmap_plain(
-    elements, nvalves, nrows, "Valve Sequence", "sample x" + str(rowskip), "valves",  xlabels, ylabels)
+    elements, nvalves, nrows, "Valve Sequence", "sample x" + str(rowskip), "valves",  xlabels, ylabels, None, None)
 graph.save_figure(fig, "./figs/valve_sequence")

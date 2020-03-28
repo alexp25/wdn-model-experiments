@@ -11,14 +11,10 @@ from typing import List
 from modules.preprocessing import Preprocessing
 from modules import generator
 
-from modules import deep_learning, loader
-import tensorflow as tf
-from keras import backend as K
+from modules import loader, model_loader, classifiers
 
 import yaml
 import pickle
-
-import modules.mat_aux as maux
 
 # import copy
 
@@ -47,13 +43,16 @@ n_reps = 5
 results_vect_train = []
 results_vect_test = []
 
-use_rnn = True
+use_randomforest = True
 
 prep = Preprocessing()
 
-output_filename = "eval_deep_1_"
-if use_rnn:
-    output_filename = "eval_deep_2_rnn_"
+if use_randomforest:
+    root_crt_model_folder = config["root_model_container"] + "/dtree_multi"
+    output_filename = "dtree_2_multioutput"
+else:
+    root_crt_model_folder = config["root_model_container"] + "/dtree"
+    output_filename = "dtree_1"
 
 # output_filename = "eval_deep_3_rnn_random_"
 # output_filename = "eval_deep_5_rnn_random_"
@@ -73,26 +72,16 @@ if config["one_hot_encoding"]:
 
 
 use_random_exp = True
-use_matching_random_model = True
+use_matching_random_model = False
 from_file = True
 
 eval_rowskip = False
-
-# run twice, with False/True to extract the data into .dat files
 use_post_rowskip = True
 
 
 if not use_random_exp:
     use_matching_random_model = False
 
-if config["load_from_container"]:
-    if use_rnn:
-        root_crt_model_folder = config["root_model_container"] + \
-            "/deep_rnn"
-        if use_matching_random_model:
-            root_crt_model_folder += "_random"
-    else:
-        root_crt_model_folder = config["root_model_container"] + "/deep"
 
 elements: List[CMapMatrixElement] = []
 elements_prediction: List[CMapMatrixElement] = []
@@ -102,13 +91,14 @@ colsdict = {}
 
 if use_random_exp:
     # input_file = "./data/random1/raw_buffer.csv"
-    input_file = "./data/random1/exp_179.csv"
+    # input_file = "./data/random1/exp_179.csv"
     # input_file = "./data/control/2/exp_217.csv"
+    input_file = "./data/exp_39.csv"
     if use_matching_random_model:
         model_file = root_crt_model_folder + "/" + "exp_179_1_top.h5"
         # model_file = root_crt_model_folder + "/" + "exp_217_2_top.h5"
     else:
-        model_file = root_crt_model_folder + "/" + "exp_39_4_top.h5"
+        model_file = root_crt_model_folder + "/" + "exp_39_3_multi_top.skl"
 else:
     input_file = "./data/exp_39.csv"
     model_file = root_crt_model_folder + "/" + "exp_39_5_top.h5"
@@ -117,6 +107,7 @@ nvalves = config["n_valves"]
 
 
 nrowskip = 0
+
 
 # X1, y1 = loader.load_dataset_raw_buffer(input_file)
 X1, y1, _, _ = loader.load_dataset(input_file)
@@ -187,8 +178,17 @@ for r in range(nrows):
 
 y_orig = y
 
+# print("refactored: ")
+# s = np.shape(y_orig)
+# print(s[0], s[1])
+# s = np.shape(X)
+# print(s[0], s[1])
+
+# quit()
+
 if config["one_hot_encoding"]:
     y = prep.encode(prep.adapt_input(y))
+    y = prep.decode_int_onehot(y)
 
 X = np.array(X)
 
@@ -199,36 +199,15 @@ print("refactored: ")
 print(sizex)
 print(sizey)
 
+model = model_loader.load_sklearn_model(model_file)
+model, acc, diff, total, predictions = classifiers.predict_decision_tree(
+            model, X, y, False)
 
-# create tensorflow graph session
-tfgraph = tf.Graph()
-with tf.Session(graph=tfgraph):
-    model = deep_learning.dl_load_model(model_file)
-    acc = deep_learning.eval_model(
-        model, X, y, sizex[1], use_rnn)
+sizep = np.shape(predictions)
 
-    # make probability predictions with the model
-    predictions = deep_learning.predict_model_RNN(model, X)
-    sizep = np.shape(predictions)
 
-    print("prediction shape: ")
-    print(sizep)
-
-    if config["one_hot_encoding"]:
-        predictions = np.reshape(predictions, (sizep[0], sizep[2]))
-        sizep = np.shape(predictions)
-        print("reshape predictions: ")
-        print(sizep)
-
-    predictions = deep_learning.binarize_predictions_max(predictions)
-
-    predictions_str = prep.adapt_input(predictions)
-    # print(predictions_str[0:10])
-    predictions_orig = predictions
-
-    if config["one_hot_encoding"]:
-        predictions = prep.decode(predictions)
-        predictions = prep.str_to_list(predictions)
+print(predictions)
+        
 
 print("accuracy: ")
 print(acc)
@@ -236,60 +215,38 @@ print(acc)
 match = []
 nomatch = []
 
-print(predictions[0:10])
-
-sizep = np.shape(predictions)
-print(sizep)
-
-nrows = sizep[0]
-ncols = sizep[1]
-
-match_count = 0
-
-print(predictions[0])
-print(predictions[0][0])
-print(y_orig[0])
-print(y_orig[0][0])
-
 multiple_ones_count = 0
 nrowskip = 0
 rowindex = 0
+match_count = 0
+nomatch_count = 0
 
 # get the matching predictions for the original encoding
-for i in range(nrows):
+for i in range(len(predictions)):
     m = True
     elements_buffer: List[CMapMatrixElement] = []
-    n_ones = np.sum(predictions[i])
-    if n_ones > 1:
-        multiple_ones_count += 1
-        # print("multiple ones: ", predictions[i])
 
-    for j in range(ncols):
-        e = CMapMatrixElement()
-        e.i = j
-        e.j = i
-        e.val = predictions[i][j]
-        elements_buffer.append(e)
-        if predictions[i][j] != y_orig[i][j]:
-            m = False
-            break
+    e = CMapMatrixElement()
+    e.i = 0
+    e.j = i
+    e.val = predictions[i]
+    elements_buffer.append(e)
+
+    if predictions[i] != y[i]:
+        m = False
 
     nrowskip += 1
 
     if nrowskip >= rowskip:
         nrowskip = 0
         for e in elements_buffer:
-            e1 = CMapMatrixElement()
-            e1.i = e.i
-            e1.j = rowindex
-            e1.val = e.val
-            elements_prediction.append(e1)
+            e.j = rowindex
+            elements_prediction.append(e)
         rowindex += 1
     if m:
         match_count += 1
     else:
-        nomatch.append("".join([str(e) for e in predictions[i]]) +
-                       " > expected > " + "".join([str(e) for e in y_orig[i]]))
+        nomatch.append(str(e.val) + " > expected > " + str(y[i]))
 
     match.append(m)
 
@@ -298,10 +255,8 @@ print("Real accuracy: ", match_count/len(predictions)*100)
 
 print(nomatch[0:10])
 
-print("multiple ones: ", multiple_ones_count)
+quit()
 
-print(len(elements))
-print(len(elements_prediction))
 
 if not use_post_rowskip:
     nrows = n_bins
@@ -310,58 +265,100 @@ xlabels = [("v" + str(i + 1)) for i in range(nvalves)]
 # ylabels = [(str(int(i * rowskip / 100))) for i in range(n_bins)]
 ylabels = [(" ") for i in range(n_bins)]
 
-intersection_matrix = maux.get_intersection_matrix_elems(
-    elements, nrows, nvalves)
-intersection_matrix_prediction = maux.get_intersection_matrix_elems(
-    elements_prediction, nrows, nvalves)
+# xlabels = []
+# ylabels = []
 
-# quit()
+# format matches
+
+# intersection_matrix = [[None for i in range(nvalves)] for j in range(nrows)]
+# intersection_matrix_prediction = [[None for i in range(nvalves)] for j in range(nrows)]
+
+intersection_matrix = [[None for i in range(nvalves)] for j in range(nrows)]
+intersection_matrix_prediction = [
+    [None for i in range(nvalves)] for j in range(nrows)]
+
+# print(len(intersection_matrix))
+# print(len(intersection_matrix[0]))
+
+for e in elements:
+    intersection_matrix[e.j][e.i] = e
+
+for e in elements_prediction:
+    intersection_matrix_prediction[e.j][e.i] = e
+
+# print(intersection_matrix)
+# print(intersection_matrix_prediction)
+
+
+def check_equal_rows(row1, row2):
+    eq = True
+    for i in range(len(row1)):
+        if row1[i] != row2[i]:
+            eq = False
+            break
+    return eq
+
 
 savefig = True
+
+
+def get_intersection_matrix(elements: List[CMapMatrixElement], rows, cols):
+    intersection_matrix = np.zeros((rows, cols))
+
+    for e in elements:
+        intersection_matrix[e.i][e.j] = e.val
+
+    return intersection_matrix
 
 
 def plot_intersection_matrix(elements: List[CMapMatrixElement], index, save):
     # fig = graph.plot_matrix_cmap_plain(
     #     elements, nvalves, nrows, "Valve Sequence", "sample x" + str(rowskip), "valves",  xlabels, ylabels)
     fig = graph.plot_matrix_cmap_plain(
-        elements, nvalves, nrows, "", "", "valves",  xlabels, ylabels, (16,7))
+        elements, nvalves, nrows, "", "", "valves",  xlabels, ylabels, None)
     if save:
         graph.save_figure(fig, "./figs/valve_sequence_" + str(index))
 
 
+# plot_intersection_matrix(elements, 0, savefig)
+
 intersection_matrix_buffer = [
     [0 for i in range(nvalves)] for j in range(post_rowskip)]
 
+print(nrows)
+print(nvalves)
+print(post_rowskip)
 
-eqrows = 0
-acc_combined = 0
+# check for matching cases
+# highlight non-matching cases
 
 if use_post_rowskip:
     avg_rows_list = []
-    nrowskip = 0
 
+    nrowskip = 0
     for row in range(nrows):
         row1 = [e.val if e is not None else 0 for e in intersection_matrix[row]]
         row2 = [
             e.val if e is not None else 0 for e in intersection_matrix_prediction[row]]
 
-        if maux.check_equal_rows(row1, row2):
-            eqrows += 1
+        if check_equal_rows(row1, row2):
             for col in range(nvalves):
                 intersection_matrix_buffer[nrowskip][col] += 1
 
         nrowskip += 1
 
         if nrowskip >= post_rowskip:
+            # print(row1)
+            # print(row2)
             nrowskip_crt = nrowskip
-            # print(nrowskip_crt)
             nrowskip = 0
             avg_rows: List[int] = []
             for col in range(nvalves):
                 avg_rows.append(0)
-
+                
                 for r in range(nrowskip_crt):
                     val = intersection_matrix_buffer[r][col]
+                    # print(val)
                     avg_rows[col] += val
                     intersection_matrix_buffer[r][col] = 0
 
@@ -369,18 +366,41 @@ if use_post_rowskip:
 
             avg_rows_list.append(avg_rows)
             print(avg_rows)
-            acc_combined += avg_rows[0]
+
+    elements_combined: List[CMapMatrixElement] = []
 
     nrows = len(avg_rows_list)
     ncols = len(avg_rows_list[0])
 
-    elements_combined: List[CMapMatrixElement] = maux.get_elems_from_matrix(
-        avg_rows_list, nrows, ncols)
+    for row in range(nrows):
+        for col in range(ncols):
+            e = CMapMatrixElement()
+            e.i = col
+            e.j = row
+            e.val = avg_rows_list[row][col]
 
-    print(eqrows)
-    print(len(avg_rows_list))
-    print(len(elements_combined))
-    print(acc_combined/len(avg_rows_list))
+            # if intersection_matrix[row * post_rowskip][col].val == 1:
+            #     e.val = avg_rows_list[row][col]
+            # else:
+            #     e.val = 0
+
+            elements_combined.append(e)
+
+# print(elements_combined)
+
+# nrowskip = 0
+# for row in range(nrows):
+#     row1 = [e.val for e in intersection_matrix[row] if e is not None]
+#     row2 = [e.val for e in intersection_matrix_prediction[row] if e is not None]
+#     if not check_equal_rows(row1, row2):
+#         for col in range(nvalves):
+#             if intersection_matrix[row][col].val == 1:
+#                 intersection_matrix[row][col].val = 0.5
+
+# quit()
+
+# for e in elements:
+#     print(e.i, e.j)
 
 
 def plot_intersection_matrix2(elements, index, nrows, ncols, save, scale):
@@ -389,7 +409,9 @@ def plot_intersection_matrix2(elements, index, nrows, ncols, save, scale):
     if save:
         graph.save_figure(fig, "./figs/valve_sequence_" + str(index))
 
+
 if not use_post_rowskip:
+
     with open("elem1.dat", "wb") as f:
         pickle.dump(elements, f)
     with open("elem2.dat", "wb") as f:
@@ -398,21 +420,28 @@ if not use_post_rowskip:
     plot_intersection_matrix(elements, 1, savefig)
     plot_intersection_matrix(elements_prediction, 2, savefig)
 else:
-    # elements_combined = elements_combined[0:n_bins]
+    # print(len(elements_combined))
+    elements_combined = elements_combined[0:n_bins]
 
-    elements_combined = [e for e in elements_combined if e.i == 0]
-    # for (i, e) in enumerate(elements_combined):
-    #     e.i = 0
-    #     e.j = i
-    #     elements.append(e)
+    for (i, e) in enumerate(elements_combined):
+        e.i = 0
+        e.j = i
+        elements.append(e)
 
-    # print(elements_combined)
-
-    vals = [e.val for e in elements_combined]
-    print(vals)
-    print("avg: ", np.mean(vals))
+    print(elements_combined)
 
     n_bins = len(elements_combined)
 
+    # xlabels.append("p ")
+
+    # plot_intersection_matrix(elements, 4, savefig)
+    # plot_intersection_matrix2(elements_combined, 3, 1, n_bins, True, (0, 1))
+
     with open("elem.dat", "wb") as f:
         pickle.dump(elements_combined, f)
+
+    # imatrix = get_intersection_matrix(elements_combined, nvalves, 1)
+    # print(imatrix)
+
+    # plot_intersection_matrix(imatrix, 3, savefig)
+    # print(get_intersection_matrix(elements_combined))
