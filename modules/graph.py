@@ -73,10 +73,11 @@ def plot_timeseries_multi_sub2(timeseries_arrays: List[List[Timeseries]], title,
             y = ts.y
 
             plt.plot(x, y, label=ts.label, color=ts.color)
-            if i == 0:
-                set_disp(title[i], "", ylabel[i])
-            else:
+            if i > 0:
                 set_disp(title[i], xlabel, ylabel[i])
+            else:
+                set_disp(title[i], "", ylabel[i])
+                
             plt.legend()
 
     # ax.tick_params(axis = 'both', which = 'major', labelsize = FSIZE_LABEL_XS)
