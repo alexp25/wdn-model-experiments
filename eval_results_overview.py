@@ -34,7 +34,7 @@ labels = ["Dense", "RNN", "DT", "RF"]
 # show model computation (only)
 
 show_model_computation = False
-show_model_computation = True
+# show_model_computation = True
 
 def list_files(mode):
     onlyfiles = [f for f in listdir(mypath) if isfile(

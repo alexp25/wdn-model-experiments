@@ -10,6 +10,7 @@ from typing import List
 import numpy as np
 import math
 import copy
+from colour import Color
 
 
 # FSIZE_TITLE = 16
@@ -22,6 +23,7 @@ FSIZE_TITLE = 16
 FSIZE_LABEL = 14
 FSIZE_LABEL_S = 14
 FSIZE_LABEL_XS = 12
+OPACITY = 0.9
 
 
 class Timeseries:
@@ -70,14 +72,21 @@ def plot_xy(x, y, rads, labels, colors, title, xlabel, ylabel, scale, show_legen
         ax.set_xlim(scale[0])
         ax.set_ylim(scale[1])
 
+    ax.grid(zorder=0)
+
     scatter_vect = []
 
     for i in range(len(x)):
         scatter_vect.append(ax.scatter(
-            y[i], x[i], s=rads[i], c=colors[i], alpha=0.7))
+            y[i], x[i], s=rads[i], c=colors[i], alpha=OPACITY, zorder=3))
 
     for i, txt in enumerate(labels_points):
-        ax.annotate(txt, (y[i], x[i]), size=14, ha='center', va='center')
+        col = Color(colors[i][:-2])
+        if col.luminance < 0.5:
+            color = "white"
+        else:
+            color = "black"
+        ax.annotate(txt, (y[i], x[i]), size=14, ha='center', va='center', color=color)
 
     ax.tick_params(axis='both', which='major', labelsize=FSIZE_LABEL_XS)
     ax.tick_params(axis='both', which='minor', labelsize=FSIZE_LABEL_XS)
@@ -98,7 +107,7 @@ def plot_xy(x, y, rads, labels, colors, title, xlabel, ylabel, scale, show_legen
         yticks[0].label1.set_visible(False)
         yticks[1].label1.set_visible(False)
 
-    ax.grid(zorder=0)
+    
     set_disp(title, xlabel, ylabel)
 
     plt.show()
@@ -332,7 +341,7 @@ def plot_barchart_multi_core(bss: List[Barseries], xlabel, ylabel, title, xlabel
     # if n_groups == 1:
     #     bar_width = 1
 
-    opacity = 0.7
+    opacity = OPACITY
 
     low = None
     high = None
@@ -434,7 +443,7 @@ def plot_barchart(labels, values, xlabel, ylabel, title, color):
 
     y_pos = np.arange(len(labels))
 
-    plt.bar(y_pos, values, align='center', alpha=0.7, color=color)
+    plt.bar(y_pos, values, align='center', alpha=OPACITY, color=color)
     plt.xticks(y_pos, labels)
 
     plt.xlabel(xlabel)
@@ -686,7 +695,7 @@ def plot_matrix_cmap_plain(elements: List[CMapMatrixElement], xsize, ysize, titl
     cmap = copy.copy(plt.get_cmap(cmap))
 
     # modify colormap
-    alpha = 0.8
+    alpha = OPACITY
     colors = []
     for ind in range(cmap.N):
         c = []
