@@ -11,6 +11,8 @@ import numpy as np
 import yaml
 import csv
 
+import math
+
 # import copy
 
 with open("config.yml", "r") as f:
@@ -19,6 +21,9 @@ with open("config.yml", "r") as f:
 
 mypath = "./data/output/"
 
+# https://www.thinkingondata.com/something-about-viridis-library/
+color_scheme = ['#404788FF', '#238A8DFF', '#FDE725FF', '#55C667FF']
+color_scheme = ['#481567FF', '#2D708EFF', '#FDE725FF', '#55C667FF']
 
 mode = "test"
 # mode = "train"
@@ -28,7 +33,7 @@ labels = ["Dense", "RNN", "DT", "RF"]
 
 # show model computation (only)
 
-# show_model_computation = False
+show_model_computation = False
 show_model_computation = True
 
 def list_files(mode):
@@ -93,8 +98,12 @@ print(acc)
 
 
 def create_barseries(accs, keys, k):
+    global color_scheme
+
     tss: List[Barseries] = []
     colors = ['blue', 'red', 'orange', 'green']
+    colors = color_scheme
+
     ck = 0
 
     print("key: " + k)
@@ -137,8 +146,11 @@ def create_barseries(accs, keys, k):
 
 
 def create_barseries_avg_accuracy_for_model_interlaced(accs, avg_best_selector, models):
+    global color_scheme
+
     tss: List[Barseries] = []
     colors = ['blue', 'red', 'green', 'orange']
+    colors = color_scheme
     ck = 0
 
     for (i, avg_best) in enumerate(avg_best_selector):
@@ -176,50 +188,95 @@ keys_comp = ["avg", "top"]
 
 limits = [80, 100]
 
-print("create barseries")
-tss = create_barseries_avg_accuracy_for_model_interlaced(
-    acc, keys_comp, labels)
-print("plotting chart")
+if not show_model_computation:
+    print("create barseries")
+    tss = create_barseries_avg_accuracy_for_model_interlaced(
+        acc, keys_comp, labels)
+    print("plotting chart")
 
-fig = graph.plot_barchart_multi(
-    tss, "model", "accuracy [%]", "Average model accuracy (" + mode + ")", labels, limits)
+    fig = graph.plot_barchart_multi(
+        tss, "model", "accuracy [%]", "Average model accuracy (" + mode + ")", labels, limits)
 
-graph.save_figure(fig, "./figs/eval_accuracy_comp_mean_combined_" + mode)
+    graph.save_figure(fig, "./figs/eval_accuracy_comp_mean_combined_" + mode)
 
-
-print("\n\n")
-print("combined accuracy results: ")
-r = [str(ts.data) for ts in tss]
-report += "combined accuracy results:\n"
-report += "\n".join(r) + "\n\n"
-print(r)
-print("\n\n")
+    print("\n\n")
+    print("combined accuracy results: ")
+    r = [str(ts.data) for ts in tss]
+    report += "combined accuracy results:\n"
+    report += "\n".join(r) + "\n\n"
+    print(r)
+    print("\n\n")
 
 if show_model_computation:
-    keys_comp = ["dt"]
+
     print("create barseries")
+
+    # print(acc)
+    keys_comp = ["avg"]
+
+    tss = create_barseries_avg_accuracy_for_model_interlaced(
+        acc, keys_comp, labels)
+
+    keys_comp = ["dt"]
     tss1 = create_barseries_avg_accuracy_for_model_interlaced(
         acc, keys_comp, labels)
     keys_comp = ["fsize"]
     tss2 = create_barseries_avg_accuracy_for_model_interlaced(
         acc, keys_comp, labels)
 
-    for i, ts in enumerate(tss2):
-        for j, d in enumerate(ts.data):
-            ts.data[j] /= 1024
-    
-    for i, ts in enumerate(tss1):
-        for j, d in enumerate(ts.data):
-            ts.data[j] /= 10
-           
+    # for i, ts in enumerate(tss2):
+    #     for j, d in enumerate(ts.data):
+    #         ts.data[j] /= 1024
+    # ts.data[j] = math.log(ts.data[j])
+
+    # for i, ts in enumerate(tss1):
+    #     for j, d in enumerate(ts.data):
+    #         ts.data[j] /= 10
+
     print("plotting chart")
     r = [str(ts.data) for ts in tss1]
     print(r)
     r = [str(ts.data) for ts in tss2]
     print(r)
 
-    fig = graph.plot_barchart_multi_dual(
-        tss1, tss2, "model", "training time [x10 s]", "size on disk [MB]", "Model computation", labels, [[0, 12], [0, 30]], True)
+    r1 = [ts.data for ts in tss1][0]
+    # r1 = [math.log(e) for e in r1]
+    print(r1)
+    r2 = [ts.data for ts in tss2][0]
+    # r2 = [math.log(e) for e in r2]
+    print(r2)
+
+    # rads = [[int(max([10, math.log(d)*100]))
+    #          for d in ts.data] for ts in tss][0]
+    rads = [ts.data for ts in tss][0]
+    accuracies = [int(d) for d in rads]
+
+    min_acc = min(rads)
+    max_acc = max(rads)
+
+    rads = [max(0.1, (d-min_acc)/(max_acc-min_acc)) * 5000 for d in rads]
+    print(rads)
+
+    # quit()
+
+    scalex = [50, 70000]
+    scaley = [-30, 140]
+
+    # scalex[0] = 2
+    # scalex[1] = math.log(scalex[1])
+
+    # scaley[0] = -3
+    # scaley[1] = math.log(scaley[1])
+
+    scale = [scalex, scaley]
+    # scale = None
+
+    fig = graph.plot_xy(r1, r2, rads, labels, color_scheme,
+                  "Model evaluation", "size on disk [KB]",  "training time [s]", scale, True, accuracies)
+    # quit()
+
+    # fig = graph.plot_barchart_multi_dual(
+    #     tss1, tss2, "model", "training time [x10 s]", "size on disk [MB]", "Model computation", labels, [[0, 12], [0, 30]], True)
 
     graph.save_figure(
         fig, "./figs/eval_accuracy_comp_mean_combined_aux_" + mode)

@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import mpld3
 from matplotlib.pyplot import figure
 from matplotlib.gridspec import GridSpec
+from matplotlib.colors import ListedColormap
 from typing import List
 import numpy as np
 import math
@@ -18,8 +19,8 @@ import copy
 
 
 FSIZE_TITLE = 16
-FSIZE_LABEL = 18
-FSIZE_LABEL_S = 18
+FSIZE_LABEL = 14
+FSIZE_LABEL_S = 14
 FSIZE_LABEL_XS = 12
 
 
@@ -57,6 +58,54 @@ class CMapMatrixElement:
 #     y = []
 
 
+def plot_xy(x, y, rads, labels, colors, title, xlabel, ylabel, scale, show_legend, labels_points):
+    fig, ax = plt.subplots()
+    # figsize=(8, 6)
+
+    set_plot_font(FSIZE_LABEL_XS)
+
+    if not scale:
+        pass
+    else:
+        ax.set_xlim(scale[0])
+        ax.set_ylim(scale[1])
+
+    scatter_vect = []
+
+    for i in range(len(x)):
+        scatter_vect.append(ax.scatter(
+            y[i], x[i], s=rads[i], c=colors[i], alpha=0.7))
+
+    for i, txt in enumerate(labels_points):
+        ax.annotate(txt, (y[i], x[i]), size=14, ha='center', va='center')
+
+    ax.tick_params(axis='both', which='major', labelsize=FSIZE_LABEL_XS)
+    ax.tick_params(axis='both', which='minor', labelsize=FSIZE_LABEL_XS)
+
+    ax.set_xscale('log')
+
+    if show_legend:
+        legend = ax.legend(scatter_vect, labels=labels)
+
+        for handle in legend.legendHandles:
+            handle._sizes = [80]
+
+    make_invisible = True
+    if (make_invisible):
+        xticks = ax.xaxis.get_major_ticks()
+        xticks[0].label1.set_visible(False)
+        yticks = ax.yaxis.get_major_ticks()
+        yticks[0].label1.set_visible(False)
+        yticks[1].label1.set_visible(False)
+
+    ax.grid(zorder=0)
+    set_disp(title, xlabel, ylabel)
+
+    plt.show()
+
+    return fig
+
+
 def plot_timeseries_multi_sub2(timeseries_arrays: List[List[Timeseries]], title, xlabel, ylabel):
     matplotlib.style.use('default')
     id = 0
@@ -77,7 +126,7 @@ def plot_timeseries_multi_sub2(timeseries_arrays: List[List[Timeseries]], title,
                 set_disp(title[i], xlabel, ylabel[i])
             else:
                 set_disp(title[i], "", ylabel[i])
-                
+
             plt.legend()
 
     # ax.tick_params(axis = 'both', which = 'major', labelsize = FSIZE_LABEL_XS)
@@ -89,10 +138,12 @@ def plot_timeseries_multi_sub2(timeseries_arrays: List[List[Timeseries]], title,
 
     return fig, mpld3.fig_to_html(fig)
 
-def set_plot_font():
-    plt.rc('xtick', labelsize=FSIZE_LABEL_XS)
-    plt.rc('ytick', labelsize=FSIZE_LABEL_XS)
-    plt.rc('legend', fontsize=FSIZE_LABEL_XS)
+
+def set_plot_font(size=FSIZE_LABEL_XS):
+    plt.rc('xtick', labelsize=size)
+    plt.rc('ytick', labelsize=size)
+    plt.rc('legend', fontsize=size)
+
 
 def plot_timeseries_multi(timeseries_array: List[Timeseries], title, xlabel, ylabel, separate):
     matplotlib.style.use('default')
@@ -155,7 +206,7 @@ def stem_timeseries_multi(timeseries_array: List[Timeseries], title, xlabel, yla
 
 def plot_timeseries_ax(timeseries: Timeseries, title, xlabel, ylabel, fig, ax, vlines):
     set_plot_font()
-    
+
     ax.plot(timeseries.x, timeseries.y)
     # set_disp(title, xlabel, ylabel)
 
@@ -261,22 +312,22 @@ def plot_barchart_multi_core(bss: List[Barseries], xlabel, ylabel, title, xlabel
         fig, ax = plt.subplots()
 
     # ax = plt.gca()
-    ax.tick_params(axis='both', which='major', labelsize=FSIZE_LABEL_S)
-    ax.tick_params(axis='both', which='minor', labelsize=FSIZE_LABEL_S)
+    ax.tick_params(axis='both', which='major', labelsize=FSIZE_LABEL_XS)
+    ax.tick_params(axis='both', which='minor', labelsize=FSIZE_LABEL_XS)
 
     n_groups = len(bss)
 
     if bcount != 0:
         bar_width = 1 / (bcount + 1)
     else:
-        bar_width = 1/(n_groups+1)
+        bar_width = 1 / (n_groups+1)
 
     if offset is None:
         # offset = -1 / (n_groups * 2 * bar_width + 1)
         if n_groups == 2:
-            offset = bar_width/2
+            offset = bar_width / 2
         else:
-            offset = -bar_width/2
+            offset = -bar_width / 2
 
     # if n_groups == 1:
     #     bar_width = 1
@@ -329,7 +380,7 @@ def plot_barchart_multi_core(bss: List[Barseries], xlabel, ylabel, title, xlabel
     if not legend_loc:
         legend_loc = "upper left"
 
-    plt.legend(loc=legend_loc, fontsize=FSIZE_LABEL)
+    plt.legend(loc=legend_loc, fontsize=FSIZE_LABEL_XS)
 
     ax.grid(zorder=0)
 
@@ -339,7 +390,6 @@ def plot_barchart_multi_core(bss: List[Barseries], xlabel, ylabel, title, xlabel
     # plt.ylim([math.ceil(low-0.005*(high-low)), math.ceil(high+0.005*(high-low))])
     # plt.ylim([low, high])
 
-   
     # kscale = 0.25
     kscale = 0.01
 
@@ -630,14 +680,42 @@ def plot_matrix_cmap_plain(elements: List[CMapMatrixElement], xsize, ysize, titl
     cmap = "YlGnBu"
     cmap = "Blues"
 
-    palette = copy.copy(plt.get_cmap(cmap))
-    palette.set_under('white', -1)
+    # color_map = plt.cm.get_cmap('Blues')
+    # cmap = color_map
+
+    cmap = copy.copy(plt.get_cmap(cmap))
+
+    # modify colormap
+    alpha = 0.8
+    colors = []
+    for ind in range(cmap.N):
+        c = []
+        # print(cmap(ind))
+        # quit()
+        c = list(cmap(ind))
+        rgb = [c[0], c[1], c[2]]
+        hsv = list(rgb2hsv(rgb[0], rgb[1], rgb[2]))
+        hsv[0] += 10
+        # print(hsv)
+        # quit()
+        rgb = hsv2rgb(hsv[0], hsv[1], hsv[2])
+        c[0] = rgb[0]
+        c[1] = rgb[1]
+        c[2] = rgb[2]
+        c[3] = alpha
+ 
+        colors.append(tuple(c))
+
+
+    cmap = matplotlib.colors.ListedColormap(colors, name='my_name')
+
+    cmap.set_under('white', -1)
 
     ax.tick_params(axis='both', which='major', labelsize=FSIZE_LABEL_S)
     ax.tick_params(axis='both', which='minor', labelsize=FSIZE_LABEL_S)
 
     im, cbar = heatmap(intersection_matrix, xlabels, ylabels, ax=ax,
-                       cmap=palette, cbarlabel=None, scale=scale)
+                       cmap=cmap, cbarlabel=None, scale=scale)
 
     set_disp(title, xlabel, ylabel)
 
@@ -707,3 +785,52 @@ def show_fig(fig):
     plt.show()
 
     return fig
+
+
+def hsv2rgb(h, s, v):
+    h = float(h)
+    s = float(s)
+    v = float(v)
+    h60 = h / 60.0
+    h60f = math.floor(h60)
+    hi = int(h60f) % 6
+    f = h60 - h60f
+    p = v * (1 - s)
+    q = v * (1 - f * s)
+    t = v * (1 - (1 - f) * s)
+    r, g, b = 0, 0, 0
+    if hi == 0:
+        r, g, b = v, t, p
+    elif hi == 1:
+        r, g, b = q, v, p
+    elif hi == 2:
+        r, g, b = p, v, t
+    elif hi == 3:
+        r, g, b = p, q, v
+    elif hi == 4:
+        r, g, b = t, p, v
+    elif hi == 5:
+        r, g, b = v, p, q
+  
+    return r, g, b
+
+
+def rgb2hsv(r, g, b):
+    r, g, b = r, g, b
+    mx = max(r, g, b)
+    mn = min(r, g, b)
+    df = mx-mn
+    if mx == mn:
+        h = 0
+    elif mx == r:
+        h = (60 * ((g-b)/df) + 360) % 360
+    elif mx == g:
+        h = (60 * ((b-r)/df) + 120) % 360
+    elif mx == b:
+        h = (60 * ((r-g)/df) + 240) % 360
+    if mx == 0:
+        s = 0
+    else:
+        s = df/mx
+    v = mx
+    return h, s, v
