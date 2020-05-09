@@ -13,6 +13,9 @@ from sklearn.ensemble import AdaBoostRegressor
 ##Metrics
 from sklearn.metrics import mean_squared_error
 
+from sklearn import svm
+from sklearn import naive_bayes
+
 
 def split_dataset_train(X, y, n_train_percent):
     # split train/test data set
@@ -34,6 +37,18 @@ def split_dataset_test(X, y, n_train_percent):
 
     return X_test, y_test
 
+def create_svm():
+    model = svm.SVC()
+    return model
+
+def create_svm_multiclass():
+    # one vs the rest
+    model = svm.LinearSVC()
+    return model
+
+def create_naive_bayes():
+    model = naive_bayes.BernoulliNB()
+    return model
 
 def create_decision_tree():
     model = DecisionTreeClassifier()
