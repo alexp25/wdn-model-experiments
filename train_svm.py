@@ -29,9 +29,12 @@ filenames = config["filenames"]
 bookmarks = config["bookmarks"]
 
 n_reps = 5
-use_saved_model = False
+use_saved_model = True
 append_timestamp = False
 save_best_model = True
+
+if use_saved_model:
+    n_reps = 1
 
 acc_train_vect = {}
 acc_test_vect = {}
@@ -230,6 +233,7 @@ def create_barseries(accs, keys):
             ts.data.append(acc[key]["avg"]["acc"])
 
         print(ts.data)
+        print(np.mean(ts.data))
         tss.append(ts)
         ts = None
     return tss

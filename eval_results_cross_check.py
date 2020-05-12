@@ -21,10 +21,10 @@ rowsdict = {}
 colsdict = {}
 
 mode = "deep_1"
-mode = "deep_2_rnn"
-mode = "dtree_1"
-mode = "dtree_2_multioutput"
-mode = "svm_1"
+# mode = "deep_2_rnn"
+# mode = "dtree_1"
+# mode = "dtree_2_multioutput"
+# mode = "svm_1"
 mode = "naive_bayes_1"
 
 mode2 = "train"
@@ -74,9 +74,9 @@ count = 0
 for e in elements:
     intersection_matrix[e.i][e.j] = e.val
 
-    if e.val > 0:
-        avg += e.val
-        count += 1
+    # if e.val > 0:
+    avg += e.val
+    count += 1
 
 print(intersection_matrix)
 
