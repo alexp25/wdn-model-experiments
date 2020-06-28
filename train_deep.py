@@ -38,6 +38,11 @@ bookmarks = config["bookmarks"]
 
 # filenames = [filenames[len(filenames)-1]]
 
+
+root_data_folder += "/selected"
+# filenames = ["exp_345", "exp_350", "exp_352"]
+filenames = ["exp_combined"]
+
 n_reps = 5
 append_timestamp = False
 save_best_model = True
@@ -48,7 +53,7 @@ if n_reps > 1:
 else:
     save_best_model = False
 
-use_rnn = False
+use_rnn = True
 
 prep = Preprocessing()
 

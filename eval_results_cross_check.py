@@ -21,16 +21,16 @@ rowsdict = {}
 colsdict = {}
 
 mode = "deep_1"
-# mode = "deep_2_rnn"
+mode = "deep_2_rnn"
 # mode = "dtree_1"
 # mode = "dtree_2_multioutput"
 # mode = "svm_1"
-mode = "naive_bayes_1"
+# mode = "naive_bayes_1"
 
 mode2 = "train"
 mode2 = "test"
 
-input_file = "./data/output/cross_check_" + mode + "_" + mode2 + ".csv"
+input_file = "./data/selected/output/cross_check_" + mode + "_" + mode2 + ".csv"
 
 with open(input_file, "r") as f:
     content = f.read().split("\n")
@@ -53,6 +53,7 @@ with open(input_file, "r") as f:
 print(elements)
 
 labels = ["1-N-80", "1-N-1-80", "1-N-1-50", "GRAY-80"]
+labels = ["A", "B", "C", "ABC"]
 
 xlabels = list(rowsdict)
 ylabels = list(colsdict)
@@ -62,6 +63,9 @@ xlabels = ylabels = labels
 
 xsize = len(rowsdict)
 ysize = len(colsdict)
+
+print(xsize)
+print(ysize)
 
 # intersection_matrix = np.random.randint(0, 10, size=(max_val, max_val))
 intersection_matrix = np.zeros((xsize, ysize))

@@ -49,7 +49,7 @@ n_reps = 5
 results_vect_train = []
 results_vect_test = []
 
-use_rnn = False
+use_rnn = True
 
 output_filename = "eval_deep_1_"
 if use_rnn:
@@ -60,6 +60,8 @@ if custom_output:
 
 # output_filename = "eval_deep_3_rnn_random_"
 # output_filename = "eval_deep_5_rnn_random_"
+
+# output_filename = "eval_deep"
 
 if config["one_hot_encoding"]:
     prep.create_encoder(prep.adapt_input(

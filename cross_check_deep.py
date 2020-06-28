@@ -40,13 +40,15 @@ root_crt_model_folder = config["root_crt_model_folder"]
 input_file = config["input_file"]
 filenames = config["filenames"]
 
-
+# root_data_folder += "/selected"
+# filenames = ["exp_345", "exp_350", "exp_352", "exp_combined"]
 use_rnn = True
 
 use_top = True
 
 if config["load_from_container"]:
     if use_rnn:
+        # root_crt_model_folder = config["root_model_container"] + "/deep_rnn_selected_all"
         root_crt_model_folder = config["root_model_container"] + "/deep_rnn"
     else:
         root_crt_model_folder = config["root_model_container"] + "/deep"
