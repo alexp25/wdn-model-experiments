@@ -18,13 +18,15 @@ with open("config.yml", "r") as f:
 
 root_data_folder = config["root_data_folder"]
 root_crt_model_folder = config["root_crt_model_folder"]
-# read the data from the csv file
-# input_file = "./PastHires.csv"
-input_file = config["input_file"]
 filenames = config["filenames"]
 bookmarks = config["bookmarks"]
-
+ 
 # filenames = ["exp_39"]
+
+root_data_folder += "/selected"
+# filenames = ["exp_345", "exp_350", "exp_352"]
+# filenames = ["exp_combined"]
+filenames = ["exp_345"]
 
 n_reps = 1
 use_saved_model = False
@@ -111,7 +113,7 @@ def create_timeseries(data, header):
 # create separate models for each data file
 for filename in filenames:
     data_file = root_data_folder + "/" + filename + ".csv"
-    x, y, xheader, yheader = loader.load_dataset(data_file)
+    x, y, z, xheader, yheader, zheader = loader.load_dataset_3(data_file)
 
     # tss = create_timeseries(x, xheader)
 
@@ -139,8 +141,9 @@ for filename in filenames:
     print(yheader)
 
 
-    x = x[467:1035, :]
-    y = y[467:1035, :]
+    # x = x[467:1035, :]
+    # y = y[467:1035, :]
+    # z = z[]
 
     print(x)
 

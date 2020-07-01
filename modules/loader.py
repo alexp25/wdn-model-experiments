@@ -95,6 +95,28 @@ def load_dataset(filename):
 
     return x, y, header[2:13], header[14:20]
 
+def load_dataset_3(filename):
+    # load the dataset
+    with open(filename, "r") as f:
+        header = f.read().split("\n")[0].split(",")
+
+    dataset = np.genfromtxt(filename, delimiter=',')
+    # split into input (X) and output (y) variables
+    x = dataset[1:, 2:13]
+    y = dataset[1:, 14:20]
+    z = dataset[1:, 13]
+
+    sizex = np.shape(x)
+    sizey = np.shape(y)
+
+    print(sizex)
+    print(sizey)
+
+    print(x)
+    print(y)
+
+    return x, y, z, header[2:13], header[14:20], header[13]
+
 def remove_col(x, col):
     # numpy.delete(arr, obj, axis=None)
     return np.delete(x, col, 1)
